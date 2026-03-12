@@ -20,6 +20,20 @@ function StudentSidebar({ activePage }: { activePage: string }) {
     return () => window.removeEventListener('resize', checkSize);
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (collapsed) {
+        if (!isMobile) {
+          document.body.classList.add("sidebar-collapsed");
+        }
+      } else {
+        if (!isMobile) {
+          document.body.classList.remove("sidebar-collapsed");
+        }
+      }
+    }
+  }, [collapsed, isMobile]);
+
   const toggleSidebar = () => setCollapsed((prev) => !prev);
   const closeMobileSidebar = () => { if (isMobile) setCollapsed(true); };
 
