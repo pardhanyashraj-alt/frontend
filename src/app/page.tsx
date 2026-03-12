@@ -45,8 +45,7 @@ export default function RoleSelectionPage() {
     if (id === 'teacher') {
       router.push('/teacher/dashboard');
     } else {
-      setToast('Student dashboard coming soon');
-      setTimeout(() => setToast(null), 3000);
+      router.push('/student/dashboard');
     }
   };
 

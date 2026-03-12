@@ -1,7 +1,7 @@
 "use client";
 
 import Sidebar from "../../components/Sidebar";
-
+import AIChatBox from "../../components/AIChatBox";
 export default function Home() {
   return (
     <>
@@ -317,6 +317,7 @@ export default function Home() {
         </div>
 
       </main>
+      <AIChatBox />
     </>
   );
 }
