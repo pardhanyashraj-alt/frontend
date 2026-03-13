@@ -42,11 +42,7 @@ export default function RoleSelectionPage() {
   const [toast, setToast] = useState<string | null>(null);
 
   const handleClick = (id: string) => {
-    if (id === 'teacher') {
-      router.push('/teacher/dashboard');
-    } else {
-      router.push('/student/dashboard');
-    }
+    router.push(`/login?role=${id}`);
   };
 
   return (
