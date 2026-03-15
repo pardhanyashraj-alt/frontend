@@ -17,7 +17,7 @@ interface Assignment {
   avgScore?: number;
 }
 
-const assignments: Assignment[] = [
+const initialAssignments: Assignment[] = [
   { id: 1, title: "Algebra Chapter 5 Quiz", class: "Mathematics", grade: "Grade 10", dueDate: "Mar 1, 2026", submissions: 38, totalStudents: 38, status: "graded", avgScore: 82 },
   { id: 2, title: "Poetry Analysis Essay", class: "English Lit", grade: "Grade 11", dueDate: "Mar 3, 2026", submissions: 18, totalStudents: 30, status: "pending" },
   { id: 3, title: "History Chapter 7 Test", class: "History", grade: "Grade 8", dueDate: "Mar 5, 2026", submissions: 0, totalStudents: 40, status: "pending" },
@@ -25,8 +25,16 @@ const assignments: Assignment[] = [
   { id: 5, title: "Trigonometry Worksheet", class: "Mathematics", grade: "Grade 10", dueDate: "Mar 7, 2026", submissions: 5, totalStudents: 38, status: "pending" },
   { id: 6, title: "Shakespeare Sonnet Analysis", class: "English Lit", grade: "Grade 11", dueDate: "Feb 25, 2026", submissions: 28, totalStudents: 30, status: "overdue" },
   { id: 7, title: "Mughal Empire Essay", class: "History", grade: "Grade 8", dueDate: "Feb 27, 2026", submissions: 40, totalStudents: 40, status: "graded", avgScore: 71 },
-  { id: 8, title: "Newton&apos;s Laws Problems", class: "Physics", grade: "Grade 11", dueDate: "Mar 4, 2026", submissions: 12, totalStudents: 28, status: "pending" },
+  { id: 8, title: "Newton's Laws Problems", class: "Physics", grade: "Grade 11", dueDate: "Mar 4, 2026", submissions: 12, totalStudents: 28, status: "pending" },
   { id: 9, title: "Periodic Table Quiz", class: "Science", grade: "Grade 9", dueDate: "Mar 6, 2026", submissions: 0, totalStudents: 34, status: "pending" },
+];
+
+const availableClasses = [
+  { name: "Mathematics", grade: "Grade 10" },
+  { name: "Science", grade: "Grade 9" },
+  { name: "History", grade: "Grade 8" },
+  { name: "English Lit", grade: "Grade 11" },
+  { name: "Physics", grade: "Grade 11" },
 ];
 
 const statusConfig: Record<AssignmentStatus, { label: string; className: string }> = {
@@ -37,12 +45,38 @@ const statusConfig: Record<AssignmentStatus, { label: string; className: string 
 };
 
 export default function AssignmentsPage() {
+  const [assignmentList, setAssignmentList] = useState<Assignment[]>(initialAssignments);
   const [filter, setFilter] = useState<"all" | AssignmentStatus>("all");
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    class: "",
+    dueDate: "",
+  });
 
-  const filtered = filter === "all" ? assignments : assignments.filter(a => a.status === filter);
-  const graded = assignments.filter(a => a.status === "graded").length;
-  const pending = assignments.filter(a => a.status === "pending").length;
-  const overdue = assignments.filter(a => a.status === "overdue").length;
+  const filtered = filter === "all" ? assignmentList : assignmentList.filter(a => a.status === filter);
+  const graded = assignmentList.filter(a => a.status === "graded").length;
+  const pending = assignmentList.filter(a => a.status === "pending").length;
+  const overdue = assignmentList.filter(a => a.status === "overdue").length;
+
+  const handleCreateAssignment = (e: React.FormEvent) => {
+    e.preventDefault();
+    const selectedClass = availableClasses.find(c => c.name === formData.class);
+    const newAssignment: Assignment = {
+      id: Date.now(),
+      title: formData.title,
+      class: formData.class,
+      grade: selectedClass?.grade || "",
+      dueDate: new Date(formData.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      submissions: 0,
+      totalStudents: 35, // Mock total students
+      status: "pending",
+    };
+
+    setAssignmentList([newAssignment, ...assignmentList]);
+    setShowModal(false);
+    setFormData({ title: "", class: "", dueDate: "" });
+  };
 
   return (
     <>
@@ -54,7 +88,7 @@ export default function AssignmentsPage() {
             <h1>Assignments</h1>
           </div>
           <div className="topbar-right">
-            <button className="btn-primary">
+            <button className="btn-primary" onClick={() => setShowModal(true)}>
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
@@ -63,6 +97,67 @@ export default function AssignmentsPage() {
             </button>
           </div>
         </div>
+
+        {/* Create Assignment Modal */}
+        {showModal && (
+          <div className="modal-overlay" onClick={() => setShowModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <div className="card-title">New Assignment</div>
+                <button className="icon-btn" onClick={() => setShowModal(false)}>
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <form onSubmit={handleCreateAssignment}>
+                <div className="modal-body">
+                  <div className="form-group">
+                    <label className="form-label">Assignment Title</label>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="e.g. Calculus Basics"
+                      required
+                      value={formData.title}
+                      onChange={e => setFormData({...formData, title: e.target.value})}
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '16px' }}>
+                    <div className="form-group">
+                      <label className="form-label">Target Class</label>
+                      <select 
+                        className="form-input" 
+                        required
+                        value={formData.class}
+                        onChange={e => setFormData({...formData, class: e.target.value})}
+                      >
+                        <option value="">Select Class</option>
+                        {availableClasses.map(c => (
+                          <option key={c.name} value={c.name}>{c.name} — {c.grade}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Due Date</label>
+                      <input 
+                        type="date" 
+                        className="form-input" 
+                        required
+                        value={formData.dueDate}
+                        onChange={e => setFormData({...formData, dueDate: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
+                  <button type="submit" className="btn-primary">Create Assignment</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="stats-grid">
@@ -73,7 +168,7 @@ export default function AssignmentsPage() {
                 <polyline points="14 2 14 8 20 8" />
               </svg>
             </div>
-            <div className="stat-value">{assignments.length}</div>
+            <div className="stat-value">{assignmentList.length}</div>
             <div className="stat-label">Total Assignments</div>
             <span className="stat-badge green">THIS TERM</span>
           </div>
@@ -119,7 +214,7 @@ export default function AssignmentsPage() {
               {(["all", "pending", "graded", "overdue"] as const).map(f => (
                 <button key={f} className={`filter-tab${filter === f ? " active" : ""}`} onClick={() => setFilter(f)}>
                   {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
-                  <span className="filter-tab-count">{f === "all" ? assignments.length : assignments.filter(a => a.status === f).length}</span>
+                  <span className="filter-tab-count">{f === "all" ? assignmentList.length : assignmentList.filter(a => a.status === f).length}</span>
                 </button>
               ))}
             </div>

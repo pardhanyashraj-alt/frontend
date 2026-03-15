@@ -62,13 +62,13 @@ export default function SchedulePage() {
             <h1>Schedule</h1>
           </div>
           <div className="topbar-right">
-            <button className="btn-primary">
+            {/* <button className="btn-primary">
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
               Add Event
-            </button>
+            </button> */}
           </div>
         </div>
 
