@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import AIChatBox from '../../components/AIChatBox';
+
 import StudentSidebar from '../../components/StudentSidebar';
 
 export default function StudentDashboard() {
@@ -317,7 +317,6 @@ export default function StudentDashboard() {
         </div>
 
       </main>
-      <AIChatBox />
     </>
   );
 }

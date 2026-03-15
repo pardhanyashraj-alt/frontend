@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Sidebar from "../../components/Sidebar";
-import AIChatBox from "../../components/AIChatBox";
+
 
 const initialClasses = [
   { id: 1, initials: "MA", name: "Mathematics — Grade 10", meta: "38 students · Mon, Wed, Fri · Room 204", progress: 72, color: "fill-blue" },
@@ -468,7 +468,6 @@ export default function Home() {
         </div>
 
       </main>
-      <AIChatBox />
     </>
   );
 }
