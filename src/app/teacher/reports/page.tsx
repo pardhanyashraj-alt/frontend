@@ -1,6 +1,6 @@
 "use client";
 
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../../components/Sidebar";
 
 const classReports = [
   { name: "Mathematics — Grade 10", students: 38, avgAttendance: 91, avgGrade: 82, passRate: 95, topPerformer: "Anjali Kapoor", color: "var(--blue)" },

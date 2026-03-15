@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-interface SidebarProps {
-  activePage: "dashboard" | "students" | "classes" | "assignments" | "schedule" | "reports" | "performance";
+interface StudentSidebarProps {
+  activePage: "dashboard" | "classes" | "assignments" | "schedule" | "history";
 }
 
-export default function Sidebar({ activePage }: SidebarProps) {
+export default function StudentSidebar({ activePage }: StudentSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -61,17 +61,18 @@ export default function Sidebar({ activePage }: SidebarProps) {
       
       <nav className={`sidebar${collapsed ? " collapsed" : ""}${isMobile && !collapsed ? " mobile-open" : ""}`}>
         <div className="logo">
-          <div className="logo-icon">
+          <div className="logo-icon" style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}>
             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.2">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
             </svg>
           </div>
           <span className="logo-name">EduFlow</span>
         </div>
 
         <div className="nav-group">
-          <div className="nav-section-label">Main</div>
-          <Link href="/teacher/dashboard" className={`nav-item${activePage === "dashboard" ? " active" : ""}`} onClick={closeMobileSidebar}>
+          <div className="nav-section-label">Learning Hub</div>
+          <Link href="/student/dashboard" className={`nav-item${activePage === "dashboard" ? " active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="7" height="7" rx="1" />
               <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -80,31 +81,22 @@ export default function Sidebar({ activePage }: SidebarProps) {
             </svg>
             Dashboard
           </Link>
-          <Link href="/teacher/students" className={`nav-item${activePage === "students" ? " active" : ""}`} onClick={closeMobileSidebar}>
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-            </svg>
-            Students
-            <span className="nav-badge">142</span>
-          </Link>
-          <Link href="/teacher/classes" className={`nav-item${activePage === "classes" ? " active" : ""}`} onClick={closeMobileSidebar}>
+          <Link href="/student/classes" className={`nav-item${activePage === "classes" ? " active student-active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
               <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
             </svg>
             My Classes
           </Link>
-          <Link href="/teacher/assignments" className={`nav-item${activePage === "assignments" ? " active" : ""}`} onClick={closeMobileSidebar}>
+          <Link href="/student/assignments" className={`nav-item${activePage === "assignments" ? " active student-active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
               <polyline points="14 2 14 8 20 8" />
             </svg>
             Assignments
-            <span className="nav-badge">5</span>
+            <span className="nav-badge" style={{ background: '#059669' }}>2</span>
           </Link>
-          <Link href="/teacher/schedule" className={`nav-item${activePage === "schedule" ? " active" : ""}`} onClick={closeMobileSidebar}>
+          <Link href="/student/schedule" className={`nav-item${activePage === "schedule" ? " active student-active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="4" width="18" height="18" rx="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
@@ -116,28 +108,20 @@ export default function Sidebar({ activePage }: SidebarProps) {
         </div>
 
         <div className="nav-group">
-          <div className="nav-section-label">Analytics</div>
-          <Link href="/teacher/reports" className={`nav-item${activePage === "reports" ? " active" : ""}`} onClick={closeMobileSidebar}>
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="20" x2="18" y2="10" />
-              <line x1="12" y1="20" x2="12" y2="4" />
-              <line x1="6" y1="20" x2="6" y2="14" />
-            </svg>
-            Reports
-          </Link>
-          <Link href="/teacher/performance" className={`nav-item${activePage === "performance" ? " active" : ""}`} onClick={closeMobileSidebar}>
+          <div className="nav-section-label">Records</div>
+          <Link href="/student/history" className={`nav-item${activePage === "history" ? " active student-active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
             </svg>
-            Performance
+            Academic History
           </Link>
         </div>
 
         <div className="sidebar-user">
-          <div className="avatar mr">MR</div>
+          <div className="avatar ak" style={{ background: '#059669' }}>AK</div>
           <div>
-            <div style={{ fontSize: "13px", fontWeight: 600 }}>Ms. Rita Sharma</div>
-            <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>Senior Teacher</div>
+            <div style={{ fontSize: "13px", fontWeight: 600 }}>Aryan Kumar</div>
+            <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>Grade 10 Student</div>
           </div>
         </div>
       </nav>
@@ -151,6 +135,13 @@ export default function Sidebar({ activePage }: SidebarProps) {
           <path d="M15 19l-7-7 7-7" />
         </svg>
       </button>
+
+      <style jsx global>{`
+        .nav-item.student-active {
+          background: #D1FAE5 !important;
+          color: #059669 !important;
+        }
+      `}</style>
     </>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import Sidebar from "../components/Sidebar";
+import { useState, useMemo } from "react";
+import Sidebar from "../../components/Sidebar";
 
 const allStudents = [
   { id: 1, name: "Anjali Kapoor", initials: "AK", color: "var(--blue-mid)", class: "Mathematics — Grade 10", attendance: 96, grade: 97, status: "excellent" },
@@ -23,6 +23,37 @@ const classes = ["All Classes", "Mathematics — Grade 10", "Science — Grade 9
 export default function StudentsPage() {
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState("All Classes");
+  const [showAddModal, setShowAddModal] = useState(false);
+  
+  // Separate search fields
+  const [idQuery, setIdQuery] = useState("");
+  const [nameQuery, setNameQuery] = useState("");
+  const [standardQuery, setStandardQuery] = useState("");
+  
+  // Target class selection
+  const [targetClass, setTargetClass] = useState("");
+  
+  // Multi-selection state
+  const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
+
+  const modalSearchResults = useMemo(() => {
+    if (!idQuery && !nameQuery && !standardQuery) return [];
+    
+    return allStudents.filter((s) => {
+      const matchId = idQuery ? s.id.toString() === idQuery : true;
+      const matchName = nameQuery ? s.name.toLowerCase().includes(nameQuery.toLowerCase()) : true;
+      const matchStandard = standardQuery ? s.class.toLowerCase().includes(standardQuery.toLowerCase()) : true;
+      
+      // Only return if at least one query is present and all present queries match
+      return matchId && matchName && matchStandard;
+    });
+  }, [idQuery, nameQuery, standardQuery]);
+
+  const toggleStudentSelection = (id: number) => {
+    setSelectedStudentIds(prev => 
+      prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
+    );
+  };
 
   const filtered = allStudents.filter((s) => {
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -38,6 +69,132 @@ export default function StudentsPage() {
   return (
     <>
       <Sidebar activePage="students" />
+
+      {/* ── ADD STUDENT MODAL ───────────────────────────────── */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="card-title">Add Student to View</div>
+              <button className="icon-btn" onClick={() => setShowAddModal(false)}>
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">Assign to Class</label>
+                <select 
+                  className="filter-select" 
+                  style={{ width: '100%', marginBottom: '20px' }}
+                  value={targetClass}
+                  onChange={(e) => setTargetClass(e.target.value)}
+                >
+                  <option value="">Select a class...</option>
+                  {classes.filter(c => c !== "All Classes").map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Student ID</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="ID #"
+                    value={idQuery}
+                    onChange={(e) => setIdQuery(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Full Name</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Search name…"
+                    value={nameQuery}
+                    onChange={(e) => setNameQuery(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Standard</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Grade 10"
+                    value={standardQuery}
+                    onChange={(e) => setStandardQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {modalSearchResults.length > 0 && (
+                <div className="search-results-list" style={{ maxHeight: '300px' }}>
+                  {modalSearchResults.map((s: any) => (
+                    <div 
+                      key={s.id} 
+                      className={`search-result-item ${selectedStudentIds.includes(s.id) ? 'selected' : ''}`}
+                      onClick={() => toggleStudentSelection(s.id)}
+                    >
+                      <div className="avatar" style={{ background: s.color, width: '32px', height: '32px', fontSize: '12px' }}>{s.initials}</div>
+                      <div className="search-result-info">
+                        <div className="search-result-name">{s.name}</div>
+                        <div className="search-result-meta">ID: #{s.id} · {s.class}</div>
+                      </div>
+                      <div className="select-indicator">
+                        {selectedStudentIds.includes(s.id) && (
+                           <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="4">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {modalSearchResults.length > 0 && (
+                <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--text-meta)', fontWeight: 600 }}>
+                  {selectedStudentIds.length} students selected
+                </div>
+              )}
+
+              {(idQuery || nameQuery || standardQuery) && modalSearchResults.length === 0 && (
+                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-meta)', fontSize: '13px' }}>
+                  No students found matching your criteria.
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn-outline" 
+                onClick={() => {
+                  setShowAddModal(false);
+                  setSelectedStudentIds([]);
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn-primary" 
+                disabled={selectedStudentIds.length === 0 || !targetClass}
+                onClick={() => {
+                  setShowAddModal(false);
+                  setSelectedStudentIds([]);
+                  setTargetClass("");
+                }}
+                style={{ opacity: (selectedStudentIds.length > 0 && targetClass) ? 1 : 0.6 }}
+              >
+                Add {selectedStudentIds.length > 0 ? selectedStudentIds.length : ''} Students
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="main">
         {/* Page Header */}
         <div className="topbar">
@@ -46,7 +203,7 @@ export default function StudentsPage() {
             <h1>Students</h1>
           </div>
           <div className="topbar-right">
-            <button className="btn-primary">
+            <button className="btn-primary" onClick={() => setShowAddModal(true)}>
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />

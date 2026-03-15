@@ -1,6 +1,6 @@
 "use client";
 
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../../components/Sidebar";
 
 const students = [
   { name: "Anjali Kapoor", initials: "AK", color: "var(--blue-mid)", math: 97, science: 88, english: 92, history: 85, overall: 97, trend: "up" },

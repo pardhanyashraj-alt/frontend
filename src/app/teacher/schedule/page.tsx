@@ -1,6 +1,6 @@
 "use client";
 
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../../components/Sidebar";
 
 const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 

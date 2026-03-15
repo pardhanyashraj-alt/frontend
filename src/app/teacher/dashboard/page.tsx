@@ -1,11 +1,198 @@
 "use client";
 
+import { useState, useMemo } from "react";
+import Link from "next/link";
 import Sidebar from "../../components/Sidebar";
 import AIChatBox from "../../components/AIChatBox";
+
+const initialClasses = [
+  { id: 1, initials: "MA", name: "Mathematics — Grade 10", meta: "38 students · Mon, Wed, Fri · Room 204", progress: 72, color: "fill-blue" },
+  { id: 2, initials: "SC", name: "Science — Grade 9", meta: "34 students · Tue, Thu · Lab B", progress: 58, color: "fill-orange" },
+  { id: 3, initials: "EN", name: "English Lit — Grade 11", meta: "30 students · Mon, Thu · Room 108", progress: 84, color: "fill-green" },
+  { id: 4, initials: "HI", name: "History — Grade 8", meta: "40 students · Wed, Fri · Room 301", progress: 45, color: "fill-purple" },
+];
+
+const initialStudents = [
+  { id: 1, initials: "AK", name: "Anjali Kapoor", score: "97%" },
+  { id: 2, initials: "RM", name: "Rohan Mehta", score: "94%" },
+  { id: 3, initials: "SM", name: "Shreya Mishra", score: "92%", color: "var(--purple)" },
+];
+
+const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
 export default function Home() {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showAddClassModal, setShowAddClassModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // New form states
+  const [subject, setSubject] = useState("");
+  const [standard, setStandard] = useState("");
+  const [schedule, setSchedule] = useState<{ day: string; time: string }[]>([]);
+  const [activeDay, setActiveDay] = useState<string | null>(null);
+  const [tempTime, setTempTime] = useState("09:00");
+
+  const addDayToSchedule = () => {
+    if (activeDay) {
+      // Format time to AM/PM for display
+      const [hours, minutes] = tempTime.split(':');
+      const h = parseInt(hours);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const displayHours = h % 12 || 12;
+      const timeStr = `${displayHours}:${minutes} ${ampm}`;
+
+      setSchedule([...schedule, { day: activeDay, time: timeStr }]);
+      setActiveDay(null);
+    }
+  };
+
+  const removeDayFromSchedule = (index: number) => {
+    setSchedule(schedule.filter((_, i) => i !== index));
+  };
+
+  const filteredClasses = useMemo(() => {
+    return initialClasses.filter(c => 
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      c.meta.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
+  const filteredStudents = useMemo(() => {
+    return initialStudents.filter(s => 
+      s.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
   return (
     <>
       <Sidebar activePage="dashboard" />
+
+      {/* ── NOTIFICATION SIDEBAR ─────────────────────────────── */}
+      <div className={`notif-sidebar ${showNotifications ? 'open' : ''}`}>
+        <div className="notif-header">
+          <div className="notif-title">Notifications</div>
+          <button className="icon-btn" onClick={() => setShowNotifications(false)}>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="notif-list">
+          <div className="notif-item unread">
+            <div className="notif-item-header">
+              <span className="notif-category">Assignment</span>
+              <span className="notif-time">2m ago</span>
+            </div>
+            <div className="notif-text">Aryan Kumar submitted Algebra Chapter 5 Quiz.</div>
+          </div>
+          <div className="notif-item unread">
+            <div className="notif-item-header">
+              <span className="notif-category">Class</span>
+              <span className="notif-time">1h ago</span>
+            </div>
+            <div className="notif-text">New parent request for Grade 10 Mathematics.</div>
+          </div>
+          <div className="notif-item">
+            <div className="notif-item-header">
+              <span className="notif-category">System</span>
+              <span className="notif-time">Yesterday</span>
+            </div>
+            <div className="notif-text">Monthly attendance report is now available for download.</div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── ADD CLASS MODAL ──────────────────────────────────── */}
+      {showAddClassModal && (
+        <div className="modal-overlay" onClick={() => setShowAddClassModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '550px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="card-title">Create New Class</div>
+              <button className="icon-btn" onClick={() => setShowAddClassModal(false)}>
+                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">Subject Name</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="e.g. Advanced Mathematics" 
+                  value={subject}
+                  onChange={e => setSubject(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Standard (Grade)</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="e.g. Grade 11" 
+                  value={standard}
+                  onChange={e => setStandard(e.target.value)}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label className="form-label">Class Schedule</label>
+                <div className="day-picker">
+                  {daysOfWeek.map(day => (
+                    <button 
+                      key={day}
+                      className={`day-chip ${activeDay === day ? 'active' : ''} ${schedule.some(s => s.day === day) ? 'active' : ''}`}
+                      onClick={() => setActiveDay(day)}
+                    >
+                      {day.substring(0, 3)}
+                    </button>
+                  ))}
+                </div>
+
+                {activeDay && (
+                  <div className="time-select-popup">
+                    <div className="card-subtitle" style={{ color: 'var(--text-primary)', marginBottom: '4px' }}>
+                      Select time for <strong>{activeDay}</strong>
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                      <input 
+                        type="time" 
+                        className="form-input" 
+                        style={{ width: 'auto' }}
+                        value={tempTime}
+                        onChange={e => setTempTime(e.target.value)}
+                      />
+                      <button className="btn-primary" style={{ padding: '8px 16px', fontSize: '13px' }} onClick={addDayToSchedule}>
+                        Add to Schedule
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="schedule-list">
+                  {schedule.map((slot, idx) => (
+                    <div className="schedule-tag" key={idx}>
+                      <div className="schedule-tag-info">
+                        {slot.day} <span className="schedule-tag-time">at {slot.time}</span>
+                      </div>
+                      <div className="remove-schedule" onClick={() => removeDayFromSchedule(idx)}>
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-outline" onClick={() => setShowAddClassModal(false)}>Cancel</button>
+              <button className="btn-primary" onClick={() => setShowAddClassModal(false)}>Create Class</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── MAIN ──────────────────────────────────────────────── */}
       <main className="main">
@@ -22,16 +209,21 @@ export default function Home() {
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              <input type="text" placeholder="Search students, classes…" />
+              <input 
+                type="text" 
+                placeholder="Search students, classes…" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <div className="icon-btn">
+            <div className="icon-btn" onClick={() => setShowNotifications(true)}>
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6B7280" strokeWidth="2">
                 <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 01-3.46 0" />
               </svg>
               <div className="notif-dot"></div>
             </div>
-            <button className="btn-primary">
+            <button className="btn-primary" onClick={() => setShowAddClassModal(true)}>
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
@@ -96,60 +288,25 @@ export default function Home() {
                 <div className="card-title">My Classes</div>
                 <div className="card-subtitle">Curriculum progress this term</div>
               </div>
-              <button className="btn-outline">View All</button>
+              <Link href="/teacher/classes" className="btn-outline" style={{ textDecoration: 'none' }}>View All</Link>
             </div>
-            <div className="class-row">
-              <div className="class-icon avatar ma">MA</div>
-              <div className="class-info">
-                <div className="class-name">Mathematics — Grade 10</div>
-                <div className="class-meta">38 students · Mon, Wed, Fri · Room 204</div>
-              </div>
-              <div className="progress-section">
-                <div className="progress-label">PROGRESS <span className="progress-pct">72%</span></div>
-                <div className="progress-bar">
-                  <div className="progress-fill fill-blue" style={{ width: "72%" }}></div>
+            {filteredClasses.length > 0 ? filteredClasses.map(c => (
+              <div className="class-row" key={c.id}>
+                <div className={`class-icon avatar ${c.initials.toLowerCase()}`}>{c.initials}</div>
+                <div className="class-info">
+                  <div className="class-name">{c.name}</div>
+                  <div className="class-meta">{c.meta}</div>
+                </div>
+                <div className="progress-section">
+                  <div className="progress-label">PROGRESS <span className="progress-pct">{c.progress}%</span></div>
+                  <div className="progress-bar">
+                    <div className={`progress-fill ${c.color}`} style={{ width: `${c.progress}%` }}></div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="class-row">
-              <div className="class-icon avatar sc">SC</div>
-              <div className="class-info">
-                <div className="class-name">Science — Grade 9</div>
-                <div className="class-meta">34 students · Tue, Thu · Lab B</div>
-              </div>
-              <div className="progress-section">
-                <div className="progress-label">PROGRESS <span className="progress-pct">58%</span></div>
-                <div className="progress-bar">
-                  <div className="progress-fill fill-orange" style={{ width: "58%" }}></div>
-                </div>
-              </div>
-            </div>
-            <div className="class-row">
-              <div className="class-icon avatar en">EN</div>
-              <div className="class-info">
-                <div className="class-name">English Lit — Grade 11</div>
-                <div className="class-meta">30 students · Mon, Thu · Room 108</div>
-              </div>
-              <div className="progress-section">
-                <div className="progress-label">PROGRESS <span className="progress-pct">84%</span></div>
-                <div className="progress-bar">
-                  <div className="progress-fill fill-green" style={{ width: "84%" }}></div>
-                </div>
-              </div>
-            </div>
-            <div className="class-row">
-              <div className="class-icon avatar hi">HI</div>
-              <div className="class-info">
-                <div className="class-name">History — Grade 8</div>
-                <div className="class-meta">40 students · Wed, Fri · Room 301</div>
-              </div>
-              <div className="progress-section">
-                <div className="progress-label">PROGRESS <span className="progress-pct">45%</span></div>
-                <div className="progress-bar">
-                  <div className="progress-fill fill-purple" style={{ width: "45%" }}></div>
-                </div>
-              </div>
-            </div>
+            )) : (
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-meta)' }}>No classes found matching &quot;{searchTerm}&quot;</div>
+            )}
           </div>
 
           <div className="card">
@@ -230,21 +387,15 @@ export default function Home() {
                 <div className="card-subtitle">By overall score this term</div>
               </div>
             </div>
-            <div className="student-row">
-              <div className="avatar ak">AK</div>
-              <div className="student-name">Anjali Kapoor</div>
-              <div className="student-score">97%</div>
-            </div>
-            <div className="student-row">
-              <div className="avatar rm">RM</div>
-              <div className="student-name">Rohan Mehta</div>
-              <div className="student-score">94%</div>
-            </div>
-            <div className="student-row">
-              <div className="avatar sm" style={{ background: "var(--purple)" }}>SM</div>
-              <div className="student-name">Shreya Mishra</div>
-              <div className="student-score">92%</div>
-            </div>
+            {filteredStudents.length > 0 ? filteredStudents.map(s => (
+              <div className="student-row" key={s.id}>
+                <div className={`avatar ${s.initials.toLowerCase()}`} style={{ background: s.color }}>{s.initials}</div>
+                <div className="student-name">{s.name}</div>
+                <div className="student-score">{s.score}</div>
+              </div>
+            )) : (
+              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-meta)', fontSize: '13px' }}>No students found</div>
+            )}
           </div>
 
           <div className="card">
