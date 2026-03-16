@@ -1,7 +1,7 @@
 "use client";
 
 import StudentSidebar from "../../components/StudentSidebar";
-import AIChatBox from "../../components/AIChatBox";
+
 
 const schedule = [
   { time: "9:00", ampm: "AM", title: "Mathematics", detail: "Room 204 · Mr. Sharma", type: "class", status: "now" },
@@ -65,7 +65,6 @@ export default function StudentSchedule() {
           ))}
         </div>
       </main>
-      <AIChatBox />
     </>
   );
 }

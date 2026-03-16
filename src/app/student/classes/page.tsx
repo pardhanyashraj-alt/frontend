@@ -1,7 +1,7 @@
 "use client";
 
 import StudentSidebar from "../../components/StudentSidebar";
-import AIChatBox from "../../components/AIChatBox";
+
 
 const studentClasses = [
   {
@@ -109,7 +109,6 @@ export default function MyClasses() {
           ))}
         </div>
       </main>
-      <AIChatBox />
     </>
   );
 }

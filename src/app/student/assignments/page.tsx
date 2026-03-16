@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import StudentSidebar from "../../components/StudentSidebar";
-import AIChatBox from "../../components/AIChatBox";
+
 
 const assignments = [
   {
@@ -136,7 +136,6 @@ export default function StudentAssignments() {
           ))}
         </div>
       </main>
-      <AIChatBox />
     </>
   );
 }

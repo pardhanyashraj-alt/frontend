@@ -1,7 +1,7 @@
 "use client";
 
 import StudentSidebar from "../../components/StudentSidebar";
-import AIChatBox from "../../components/AIChatBox";
+
 
 const history = [
   { term: "Spring 2026", gpa: "3.9", status: "Current", courses: 6 },
@@ -85,7 +85,6 @@ export default function StudentHistory() {
           ))}
         </div>
       </main>
-      <AIChatBox />
     </>
   );
 }
