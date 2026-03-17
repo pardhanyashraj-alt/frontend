@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ── COLOR PALETTE ─────────────────────────────────────── */
 :root {
     --bg: #F0F4F8;
@@ -27,6 +31,30 @@
 
     --sidebar-width: 280px;
     --sidebar-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Semantic Aliases */
+    --card-bg: var(--white);
+    --input-bg: var(--white);
+    --modal-bg: var(--white);
+    --nav-hover: rgba(0, 0, 0, 0.03);
+}
+
+:root.dark {
+    --bg: #0F172A;
+    --white: #1E293B;
+    --border: #334155;
+    --track: #334155;
+
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --text-meta: #64748B;
+
+    --blue: #3B82F6;
+    --blue-light: rgba(59, 130, 246, 0.15);
+    
+    --card-bg: #1E293B;
+    --input-bg: #0F172A;
+    --nav-hover: rgba(255, 255, 255, 0.05);
 }
 
 * {
@@ -40,6 +68,7 @@ body {
     color: var(--text-primary);
     display: flex;
     min-height: 100vh;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ── SIDEBAR ─────────────────────────────────────────────── */
@@ -56,7 +85,27 @@ body {
     left: 0;
     bottom: 0;
     z-index: 1000;
-    transition: transform var(--sidebar-transition);
+    transition: transform var(--sidebar-transition), background 0.3s ease, border-color 0.3s ease;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-meta) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--text-meta);
 }
 
 .sidebar.collapsed {
@@ -290,7 +339,7 @@ body {
     height: 8px;
     background: var(--orange);
     border-radius: 50%;
-    border: 2px solid white;
+    border: 2px solid var(--white);
 }
 
 .btn-primary {
@@ -328,7 +377,7 @@ body {
 }
 
 .stat-card {
-    background: var(--white);
+    background: var(--card-bg);
     border-radius: 14px;
     padding: 20px;
     border: 1px solid var(--border);
@@ -351,7 +400,7 @@ body {
     margin-bottom: 14px;
 }
 
-.stat-icon.blue { background: #EFF6FF; color: var(--blue); }
+.stat-icon.blue { background: var(--blue-light); color: var(--blue); }
 .stat-icon.orange { background: var(--orange-light); color: var(--orange); }
 .stat-icon.green { background: var(--green-light); color: var(--green-dark); }
 .stat-icon.purple { background: var(--purple-light); color: var(--purple-dark); }
@@ -391,7 +440,7 @@ body {
 
 /* ── CARD ────────────────────────────────────────────────── */
 .card {
-    background: var(--white);
+    background: var(--card-bg);
     border-radius: 14px;
     border: 1px solid var(--border);
     overflow: hidden;
@@ -646,7 +695,7 @@ body {
 }
 
 .bar.highlight { background: var(--blue); }
-.bar.normal { background: #BFDBFE; }
+.bar.normal { background: var(--blue-light); }
 
 .bar-label {
     font-size: 11px;
