@@ -55,22 +55,22 @@ export default function StudentSettings() {
 
               <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Full Name</label>
-                  <input className="form-input" style={{ width: '100%' }} value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Full Name</label>
+                  <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Email Address</label>
-                  <input className="form-input" style={{ width: '100%' }} value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Email Address</label>
+                  <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Phone Number</label>
-                  <input className="form-input" style={{ width: '100%' }} value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Phone Number</label>
+                  <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} />
                 </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Bio / About field</label>
-                <textarea className="form-input" style={{ width: '100%', resize: 'none' }} rows={4} value={profile.bio} onChange={e => setProfile({...profile, bio: e.target.value})} />
+                <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Bio / About field</label>
+                <textarea className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%', resize: 'none' }} rows={4} value={profile.bio} onChange={e => setProfile({...profile, bio: e.target.value})} />
               </div>
             </div>
             <div className="card-footer" style={{ padding: '24px', display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
@@ -90,17 +90,17 @@ export default function StudentSettings() {
               <div style={{ marginBottom: '32px' }}>
                 <div className="card-subtitle" style={{ marginBottom: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>Change Password</div>
                 <div className="form-group" style={{ marginBottom: '24px' }}>
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Current Password</label>
-                  <input className="form-input" style={{ width: '100%' }} type="password" placeholder="••••••••" />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Current Password</label>
+                  <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} type="password" placeholder="••••••••" />
                 </div>
                 <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
                   <div className="form-group">
-                    <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>New Password</label>
-                    <input className="form-input" style={{ width: '100%' }} type="password" placeholder="••••••••" />
+                    <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>New Password</label>
+                    <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} type="password" placeholder="••••••••" />
                   </div>
                   <div className="form-group">
-                    <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Confirm New Password</label>
-                    <input className="form-input" style={{ width: '100%' }} type="password" placeholder="••••••••" />
+                    <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Confirm New Password</label>
+                    <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} type="password" placeholder="••••••••" />
                   </div>
                 </div>
               </div>
@@ -158,8 +158,8 @@ export default function StudentSettings() {
                 </div>
               </div>
               <div className="form-group">
-                <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Language selection</label>
-                <select className="form-input" style={{ width: '100%' }}>
+                <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Language selection</label>
+                <select className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }}>
                   <option>English</option>
                   <option>Spanish</option>
                   <option>French</option>
@@ -178,12 +178,12 @@ export default function StudentSettings() {
             <div className="card-body" style={{ padding: '24px' }}>
               <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Preferred study reminder time</label>
-                  <input type="time" className="form-input" style={{ width: '100%' }} defaultValue="18:00" />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Preferred study reminder time</label>
+                  <input type="time" className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} defaultValue="18:00" />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Daily study goal (hours)</label>
-                  <input type="number" className="form-input" style={{ width: '100%' }} defaultValue="2" min="1" max="12" />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Daily study goal (hours)</label>
+                  <input type="number" className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} defaultValue="2" min="1" max="12" />
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -209,8 +209,8 @@ export default function StudentSettings() {
             </div>
             <div className="card-body" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div className="form-group" style={{ maxWidth: '400px' }}>
-                <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Profile visibility</label>
-                <select className="form-input" style={{ width: '100%' }}>
+                <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Profile visibility</label>
+                <select className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }}>
                   <option>Public</option>
                   <option>Private</option>
                   <option>Only Classmates</option>
@@ -239,7 +239,7 @@ export default function StudentSettings() {
   return (
     <>
       <StudentSidebar activePage="settings" />
-      <main className="main">
+      <main className="main bg-white dark:bg-gray-900 min-h-screen">
         <div className="topbar">
           <div className="topbar-left">
             <div className="greeting">Manage your account and preferences</div>

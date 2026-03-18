@@ -1615,6 +1615,11 @@ svg {
     font-weight: 600;
     color: var(--text-secondary);
     margin-bottom: 8px;
+    transition: color 0.3s ease;
+}
+
+:root.dark .form-label {
+    color: var(--text-secondary); /* This is actually #94A3B8 in dark mode, which is good. */
 }
 
 .form-input {
@@ -1624,11 +1629,18 @@ svg {
     border-radius: 10px;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s;
+    transition: all 0.3s ease;
+    background: var(--input-bg);
+    color: var(--text-primary);
+}
+
+.form-input::placeholder {
+    color: var(--text-meta);
 }
 
 .form-input:focus {
     border-color: var(--blue);
+    box-shadow: 0 0 0 2px var(--blue-light);
 }
 
 .modal-footer {

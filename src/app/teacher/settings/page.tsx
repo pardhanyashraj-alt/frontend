@@ -88,26 +88,26 @@ export default function TeacherSettings() {
 
               <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Full Name</label>
-                  <input className="form-input" style={{ width: '100%' }} value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Full Name</label>
+                  <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Email Address</label>
-                  <input className="form-input" style={{ width: '100%' }} value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Email Address</label>
+                  <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Phone Number</label>
-                  <input className="form-input" style={{ width: '100%' }} value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Phone Number</label>
+                  <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Subject Specialization</label>
-                  <input className="form-input" style={{ width: '100%' }} value={profile.specialization} onChange={e => setProfile({...profile, specialization: e.target.value})} />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Subject Specialization</label>
+                  <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={profile.specialization} onChange={e => setProfile({...profile, specialization: e.target.value})} />
                 </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Bio / About section</label>
-                <textarea className="form-input" style={{ width: '100%', resize: 'none' }} rows={4} value={profile.bio} onChange={e => setProfile({...profile, bio: e.target.value})} />
+                <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Bio / About section</label>
+                <textarea className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%', resize: 'none' }} rows={4} value={profile.bio} onChange={e => setProfile({...profile, bio: e.target.value})} />
               </div>
             </div>
             <div className="card-footer" style={{ padding: '24px', display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
@@ -127,17 +127,17 @@ export default function TeacherSettings() {
               <div style={{ marginBottom: '32px' }}>
                 <div className="card-subtitle" style={{ marginBottom: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>Change Password</div>
                 <div className="form-group" style={{ marginBottom: '24px' }}>
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Current Password</label>
-                  <input className="form-input" style={{ width: '100%' }} type="password" placeholder="••••••••" />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Current Password</label>
+                  <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} type="password" placeholder="••••••••" />
                 </div>
                 <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
                   <div className="form-group">
-                    <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>New Password</label>
-                    <input className="form-input" style={{ width: '100%' }} type="password" placeholder="••••••••" />
+                    <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>New Password</label>
+                    <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} type="password" placeholder="••••••••" />
                   </div>
                   <div className="form-group">
-                    <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Confirm New Password</label>
-                    <input className="form-input" style={{ width: '100%' }} type="password" placeholder="••••••••" />
+                    <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Confirm New Password</label>
+                    <input className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} type="password" placeholder="••••••••" />
                   </div>
                 </div>
               </div>
@@ -198,24 +198,24 @@ export default function TeacherSettings() {
             <div className="card-body" style={{ padding: '24px' }}>
               <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Default Summary Length</label>
-                  <select className="form-input" style={{ width: '100%' }} value={aiPrefs.summaryLength} onChange={e => setAiPrefs({...aiPrefs, summaryLength: e.target.value})}>
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Default Summary Length</label>
+                  <select className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={aiPrefs.summaryLength} onChange={e => setAiPrefs({...aiPrefs, summaryLength: e.target.value})}>
                     <option>Short</option>
                     <option>Medium</option>
                     <option>Detailed</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Default Quiz Difficulty</label>
-                  <select className="form-input" style={{ width: '100%' }} value={aiPrefs.difficulty} onChange={e => setAiPrefs({...aiPrefs, difficulty: e.target.value})}>
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Default Quiz Difficulty</label>
+                  <select className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={aiPrefs.difficulty} onChange={e => setAiPrefs({...aiPrefs, difficulty: e.target.value})}>
                     <option>Easy</option>
                     <option>Medium</option>
                     <option>Hard</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Default Number of Quiz Questions</label>
-                  <input type="number" className="form-input" style={{ width: '100%' }} value={aiPrefs.quizCount} onChange={e => setAiPrefs({...aiPrefs, quizCount: parseInt(e.target.value)})} />
+                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Default Number of Quiz Questions</label>
+                  <input type="number" className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={aiPrefs.quizCount} onChange={e => setAiPrefs({...aiPrefs, quizCount: parseInt(e.target.value)})} />
                 </div>
               </div>
             </div>
@@ -241,8 +241,8 @@ export default function TeacherSettings() {
                 </div>
               </div>
               <div className="form-group">
-                <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Language</label>
-                <select className="form-input" style={{ width: '100%' }} value={appearance.language} onChange={e => setAppearance({...appearance, language: e.target.value})}>
+                <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Language</label>
+                <select className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={appearance.language} onChange={e => setAppearance({...appearance, language: e.target.value})}>
                   <option>English</option>
                   <option>Spanish</option>
                   <option>French</option>
@@ -263,8 +263,8 @@ export default function TeacherSettings() {
             </div>
             <div className="card-body" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div className="form-group" style={{ maxWidth: '400px' }}>
-                <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Default Test Time Limit (minutes)</label>
-                <input type="number" className="form-input" style={{ width: '100%' }} value={classSettings.timeLimit} onChange={e => setClassSettings({...classSettings, timeLimit: parseInt(e.target.value)})} />
+                <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Default Test Time Limit (minutes)</label>
+                <input type="number" className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={classSettings.timeLimit} onChange={e => setClassSettings({...classSettings, timeLimit: parseInt(e.target.value)})} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
@@ -298,7 +298,7 @@ export default function TeacherSettings() {
   return (
     <>
       <Sidebar activePage="settings" />
-      <main className="main">
+      <main className="main bg-white dark:bg-gray-900 min-h-screen">
         <div className="topbar">
           <div className="topbar-left">
             <div className="greeting">Manage your account preferences</div>
