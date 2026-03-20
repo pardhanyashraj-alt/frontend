@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const role = searchParams.get('role') === 'teacher' ? 'teacher' : 'student';
+  const roleParam = searchParams.get('role');
+  const role = roleParam === 'teacher' ? 'teacher' : roleParam === 'admin' ? 'admin' : 'student';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,6 +22,8 @@ function LoginContent() {
       setLoading(false);
       if (role === 'teacher') {
         router.push('/teacher/dashboard');
+      } else if (role === 'admin') {
+        router.push('/admin/register');
       } else {
         router.push('/student/dashboard');
       }
@@ -39,7 +42,7 @@ function LoginContent() {
           {/* Header */}
           <div style={s.header}>
             <div style={s.roleBadge}>
-              {role === 'teacher' ? 'Teacher Portal' : 'Student Portal'}
+              {role === 'teacher' ? 'Teacher Portal' : role === 'admin' ? 'Admin Portal' : 'Student Portal'}
             </div>
             <h1 style={s.title}>Login to EduFlow</h1>
             <p style={s.subtitle}>Welcome back! Please enter your details.</p>

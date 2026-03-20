@@ -51,7 +51,7 @@ const assignments = [
 export default function StudentAssignments() {
   const [filter, setFilter] = useState("all");
 
-  const filteredAssignments = assignments.filter(a => 
+  const filteredAssignments = assignments.filter(a =>
     filter === "all" ? true : a.status === filter
   );
 
@@ -67,9 +67,7 @@ export default function StudentAssignments() {
           </div>
           <div className="topbar-right">
             <span className="pending-badge" style={{ background: '#059669', color: 'white' }}>2 pending</span>
-            <button className="btn-primary" style={{ background: '#059669' }}>
-               Submit Work
-            </button>
+
           </div>
         </div>
 
@@ -81,7 +79,7 @@ export default function StudentAssignments() {
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               {['all', 'pending', 'submitted', 'graded', 'overdue'].map(f => (
-                <button 
+                <button
                   key={f}
                   onClick={() => setFilter(f)}
                   style={{
@@ -104,8 +102,8 @@ export default function StudentAssignments() {
 
           {filteredAssignments.map((a) => (
             <div className="assign-row" key={a.id} style={{ padding: '16px 20px' }}>
-              <div className={`checkbox ${a.status === 'submitted' || a.status === 'graded' ? 'checked' : ''}`} 
-                   style={{ borderColor: a.status === 'overdue' ? 'var(--red)' : '' }}>
+              <div className={`checkbox ${a.status === 'submitted' || a.status === 'graded' ? 'checked' : ''}`}
+                style={{ borderColor: a.status === 'overdue' ? 'var(--red)' : '' }}>
                 {(a.status === 'submitted' || a.status === 'graded') && (
                   <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="3">
                     <polyline points="20 6 9 17 4 12" />
@@ -117,17 +115,19 @@ export default function StudentAssignments() {
                   {a.title}
                 </div>
                 <div className="assign-sub">
-                   <span style={{ color: a.color, fontWeight: 600 }}>{a.subject}</span> · 
-                   <span style={{ color: a.status === 'pending' && a.due.includes('Tomorrow') ? 'var(--orange)' : 
-                                       a.status === 'overdue' ? 'var(--red)' : '' }}> {a.due}</span>
+                  <span style={{ color: a.color, fontWeight: 600 }}>{a.subject}</span> ·
+                  <span style={{
+                    color: a.status === 'pending' && a.due.includes('Tomorrow') ? 'var(--orange)' :
+                      a.status === 'overdue' ? 'var(--red)' : ''
+                  }}> {a.due}</span>
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 {a.status === 'graded' ? (
                   <div style={{ color: 'var(--green-dark)', fontWeight: 700, fontSize: '18px' }}>{a.score}</div>
                 ) : (
-                  <button className={a.status === 'submitted' ? "btn-outline" : "btn-primary"} 
-                          style={{ background: a.status === 'submitted' ? '' : '#059669' }}>
+                  <button className={a.status === 'submitted' ? "btn-outline" : "btn-primary"}
+                    style={{ background: a.status === 'submitted' ? '' : '#059669' }}>
                     {a.status === 'submitted' ? "View" : "Upload"}
                   </button>
                 )}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import StudentSidebar from "../../components/StudentSidebar";
 
 
@@ -104,7 +105,7 @@ export default function MyClasses() {
                   <div className="progress-fill" style={{ width: `${cls.progress}%`, background: cls.color }}></div>
                 </div>
               </div>
-              <button className="btn-outline" style={{ marginLeft: '20px' }}>Enter Class</button>
+              <Link href={`/student/classes/${cls.id}`} className="btn-outline" style={{ marginLeft: '20px', textDecoration: 'none' }}>Enter Class</Link>
             </div>
           ))}
         </div>

@@ -7,10 +7,46 @@ import StudentSidebar from '../../components/StudentSidebar';
 
 export default function StudentDashboard() {
   const [contentFilter, setContentFilter] = useState('All');
+  const [showNotifications, setShowNotifications] = useState(false);
 
   return (
     <>
       <StudentSidebar activePage="dashboard" />
+      
+      {/* ── NOTIFICATION SIDEBAR ─────────────────────────────── */}
+      <div className={`notif-sidebar ${showNotifications ? 'open' : ''}`}>
+        <div className="notif-header">
+          <div className="notif-title">Notifications</div>
+          <button className="icon-btn" onClick={() => setShowNotifications(false)}>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="notif-list">
+          <div className="notif-item unread">
+            <div className="notif-item-header">
+              <span className="notif-category">EXAM</span>
+              <span className="notif-time">10m ago</span>
+            </div>
+            <div className="notif-text">Final Term Mathematics schedule has been released.</div>
+          </div>
+          <div className="notif-item unread">
+            <div className="notif-item-header">
+              <span className="notif-category">ASSIGNMENT</span>
+              <span className="notif-time">2h ago</span>
+            </div>
+            <div className="notif-text">Mrs. Gupta uploaded new practical notes for Physics Lab.</div>
+          </div>
+          <div className="notif-item">
+            <div className="notif-item-header">
+              <span className="notif-category">SYSTEM</span>
+              <span className="notif-time">Yesterday</span>
+            </div>
+            <div className="notif-text">Your leave request for May 4th has been approved.</div>
+          </div>
+        </div>
+      </div>
 
       {/* ── MAIN ──────────────────────────────────────────────── */}
       <main className="main">
@@ -21,14 +57,7 @@ export default function StudentDashboard() {
             <h1>Student Dashboard</h1>
           </div>
           <div className="topbar-right">
-            <div className="search-box">
-              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#9CA3AF" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input type="text" placeholder="Search courses, materials…" />
-            </div>
-            <div className="icon-btn">
+            <div className="icon-btn" onClick={() => setShowNotifications(true)}>
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6B7280" strokeWidth="2">
                 <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 01-3.46 0" />
@@ -100,7 +129,7 @@ export default function StudentDashboard() {
                 <div className="card-title">Enrolled Classes</div>
                 <div className="card-subtitle">Your active courses</div>
               </div>
-              <button className="btn-outline">All Classes</button>
+              <Link href="/student/classes" className="btn-outline">All Classes</Link>
             </div>
 
             <div className="class-row">
@@ -116,7 +145,7 @@ export default function StudentDashboard() {
                     <div className="progress-fill fill-blue" style={{ width: "40%" }}></div>
                   </div>
                 </div>
-                <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px' }}>Open</button>
+                <Link href="/student/classes/1" className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none' }}>Open</Link>
               </div>
             </div>
 
@@ -133,7 +162,7 @@ export default function StudentDashboard() {
                     <div className="progress-fill fill-orange" style={{ width: "75%" }}></div>
                   </div>
                 </div>
-                <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px' }}>Open</button>
+                <Link href="/student/classes/2" className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none' }}>Open</Link>
               </div>
             </div>
 
@@ -150,7 +179,7 @@ export default function StudentDashboard() {
                     <div className="progress-fill fill-green" style={{ width: "40%" }}></div>
                   </div>
                 </div>
-                <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px' }}>Open</button>
+                <Link href="/student/classes/3" className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none' }}>Open</Link>
               </div>
             </div>
           </div>
@@ -273,45 +302,58 @@ export default function StudentDashboard() {
             )}
           </div>
 
-          {/* 2. Pending Requests & 6. History */}
           <div className="card">
-            <div className="card-header assign-header">
+            <div className="card-header" style={{ borderBottom: '1px solid var(--border)' }}>
               <div>
                 <div className="card-title">My Requests & Status</div>
-                <div className="card-subtitle">Updates on your activity</div>
+                <div className="card-subtitle">Activity and approval tracker</div>
+              </div>
+              <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '11px' }}>+ New</button>
+            </div>
+            
+            <div style={{ padding: '8px 0' }}>
+              <div className="class-row" style={{ border: 'none', padding: '12px 20px' }}>
+                <div className="stat-icon gray" style={{ width: '32px', height: '32px', background: 'var(--amber-light)', color: 'var(--amber)' }}>
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+                <div style={{ flexGrow: 1 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600 }}>Coding Club Join Request</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-meta)', marginTop: '2px' }}>Submitted on March 18</div>
+                </div>
+                <span style={{ fontSize: '10px', background: 'var(--amber-light)', color: 'var(--amber)', padding: '4px 8px', borderRadius: '12px', fontWeight: 700 }}>PENDING</span>
+              </div>
+
+              <div className="class-row" style={{ borderTop: '1px solid var(--border)', padding: '12px 20px' }}>
+                <div className="stat-icon green" style={{ width: '32px', height: '32px', background: 'var(--green-light)', color: 'var(--green-dark)' }}>
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                </div>
+                <div style={{ flexGrow: 1 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600 }}>Leave of Absence (May 4)</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-meta)', marginTop: '2px' }}>Approved by Principal</div>
+                </div>
+                <span style={{ fontSize: '10px', background: 'var(--green-light)', color: 'var(--green-dark)', padding: '4px 8px', borderRadius: '12px', fontWeight: 700 }}>APPROVED</span>
+              </div>
+
+              <div className="class-row" style={{ borderTop: '1px solid var(--border)', padding: '12px 20px' }}>
+                <div className="stat-icon blue" style={{ width: '32px', height: '32px', background: 'var(--blue-light)', color: 'var(--blue)' }}>
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                </div>
+                <div style={{ flexGrow: 1 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600 }}>Transfer Certificate Copy</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-meta)', marginTop: '2px' }}>Processing by Office</div>
+                </div>
+                <span style={{ fontSize: '10px', background: 'var(--blue-light)', color: 'var(--blue)', padding: '4px 8px', borderRadius: '12px', fontWeight: 700 }}>IN REVIEW</span>
               </div>
             </div>
             
-            <div className="assign-row" style={{ padding: '12px 0' }}>
-              <div className="stat-icon gray" style={{ width: '36px', height: '36px', background: '#F3F4F6' }}>
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#6B7280" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              </div>
-              <div style={{ flexGrow: 1 }}>
-                <div className="assign-title">Coding Club Join Request</div>
-                <div className="assign-sub" style={{ marginTop: '4px' }}>
-                  <span style={{ fontSize: '10px', background: '#FEF3C7', color: '#D97706', padding: '4px 8px', borderRadius: '20px', fontWeight: 600 }}>PENDING</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="assign-row" style={{ padding: '12px 0' }}>
-              <div className="stat-icon green" style={{ width: '36px', height: '36px', background: '#D1FAE5' }}>
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#059669" strokeWidth="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              </div>
-              <div style={{ flexGrow: 1 }}>
-                <div className="assign-title">Leave of Absence (May 4)</div>
-                <div className="assign-sub" style={{ marginTop: '4px' }}>
-                  <span style={{ fontSize: '10px', background: '#D1FAE5', color: '#059669', padding: '4px 8px', borderRadius: '20px', fontWeight: 600 }}>APPROVED</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="assign-row" style={{ padding: '12px 0' }}>
-              <div style={{ flexGrow: 1 }}>
-                <div className="assign-title">Previous Term: Fall 2025</div>
-                <div className="assign-sub">GPA: 3.8 · 5 Courses Completed</div>
-              </div>
-              <button className="btn-outline" style={{ fontSize: '12px', padding: '6px 10px' }}>Record</button>
+            <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
+              <Link href="#" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--blue)', textDecoration: 'none' }}>View All Requests</Link>
             </div>
           </div>
         </div>
