@@ -35,6 +35,21 @@ const roles = [
       </svg>
     ),
   },
+  {
+    id: 'admin',
+    title: 'Administrator',
+    description: 'Full control over institution, staff, students and finance.',
+    accentColor: '#2563EB',
+    accentLight: '#DBEAFE',
+    shadowColor: 'rgba(37,99,235,0.28)',
+    badge: 'Central Control',
+    icon: (
+      <svg width="34" height="34" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0110 0v4" />
+      </svg>
+    ),
+  },
 ];
 
 export default function RoleSelectionPage() {
@@ -199,7 +214,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   container: {
     width: '100%',
-    maxWidth: '768px', // Slightly narrower for 2 cards
+    maxWidth: '1000px', // Wider for 3 cards
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',

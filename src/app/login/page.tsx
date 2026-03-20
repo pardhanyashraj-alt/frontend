@@ -23,7 +23,7 @@ function LoginContent() {
       if (role === 'teacher') {
         router.push('/teacher/dashboard');
       } else if (role === 'admin') {
-        router.push('/admin/register');
+        router.push('/admin/dashboard');
       } else {
         router.push('/student/dashboard');
       }
