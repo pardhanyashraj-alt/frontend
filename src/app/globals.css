@@ -39,7 +39,8 @@
     --nav-hover: rgba(0, 0, 0, 0.03);
 }
 
-:root.dark {
+:root.dark,
+html.dark {
     --bg: #0F172A;
     --white: #1E293B;
     --border: #334155;
@@ -49,12 +50,17 @@
     --text-secondary: #94A3B8;
     --text-meta: #64748B;
 
-    --blue: #3B82F6;
-    --blue-light: rgba(59, 130, 246, 0.15);
+    --blue: #60A5FA;
+    --blue-light: rgba(59, 130, 246, 0.22);
+    --orange-light: rgba(249, 115, 22, 0.18);
+    --purple-light: rgba(168, 85, 247, 0.2);
+    --green-light: rgba(34, 197, 94, 0.18);
+    --amber-light: rgba(217, 119, 6, 0.2);
     
     --card-bg: #1E293B;
     --input-bg: #0F172A;
-    --nav-hover: rgba(255, 255, 255, 0.05);
+    --modal-bg: #1E293B;
+    --nav-hover: rgba(255, 255, 255, 0.06);
 }
 
 * {
@@ -1839,4 +1845,94 @@ svg {
 
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* ── DARK MODE: hardcoded light surfaces & hovers ───────── */
+:root.dark .table-row:hover,
+html.dark .table-row:hover {
+    background: rgba(148, 163, 184, 0.08);
+}
+
+:root.dark .assign-table-row:hover,
+html.dark .assign-table-row:hover,
+:root.dark .report-table-row:hover,
+html.dark .report-table-row:hover,
+:root.dark .perf-table-row:hover,
+html.dark .perf-table-row:hover {
+    background: rgba(148, 163, 184, 0.08);
+}
+
+:root.dark .notif-item:hover,
+html.dark .notif-item:hover {
+    background: rgba(148, 163, 184, 0.08);
+    border-color: var(--border);
+}
+
+:root.dark .notif-item.unread,
+html.dark .notif-item.unread {
+    background: rgba(59, 130, 246, 0.14);
+}
+
+:root.dark .modal-footer,
+html.dark .modal-footer {
+    background: var(--bg);
+    border-top-color: var(--border);
+}
+
+:root.dark .search-result-item:hover,
+html.dark .search-result-item:hover {
+    background: rgba(148, 163, 184, 0.08);
+}
+
+:root.dark .search-result-item.selected,
+html.dark .search-result-item.selected {
+    background: rgba(59, 130, 246, 0.16);
+    border-left-color: var(--blue);
+}
+
+:root.dark .schedule-tag,
+html.dark .schedule-tag {
+    background: rgba(148, 163, 184, 0.12);
+}
+
+:root.dark .time-select-popup,
+html.dark .time-select-popup {
+    background: var(--card-bg);
+}
+
+:root.dark .day-chip,
+html.dark .day-chip {
+    background: var(--input-bg);
+    color: var(--text-secondary);
+    border-color: var(--border);
+}
+
+:root.dark .day-chip.active,
+html.dark .day-chip.active {
+    color: #fff;
+}
+
+:root.dark .class-detail-card,
+html.dark .class-detail-card {
+    background: var(--card-bg);
+    border-color: var(--border);
+}
+
+:root.dark .search-box input,
+html.dark .search-box input {
+    color: var(--text-primary);
+}
+
+:root.dark .icon-btn,
+html.dark .icon-btn {
+    background: var(--card-bg);
+    border-color: var(--border);
+    color: var(--text-secondary);
+}
+
+:root.dark .sidebar-toggle,
+html.dark .sidebar-toggle {
+    background: var(--card-bg);
+    border-color: var(--border);
+    color: var(--text-secondary);
+}
 

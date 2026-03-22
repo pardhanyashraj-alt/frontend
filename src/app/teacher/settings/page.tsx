@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
-import { useTheme } from "../../components/ThemeProvider";
+import { useTheme, type ThemePreference } from "../../components/ThemeProvider";
 
 type TabType = "profile" | "security" | "notifications" | "appearance" | "class";
 
 export default function TeacherSettings() {
   const [activeTab, setActiveTab] = useState<TabType>("profile");
   const [isSaving, setIsSaving] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  const { preference, setPreference, resolvedTheme } = useTheme();
 
   // Profile States
   const [profile, setProfile] = useState({
@@ -189,13 +189,28 @@ export default function TeacherSettings() {
               <div className="card-title">Appearance Settings</div>
             </div>
             <div className="card-body" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '15px' }}>Dark Mode</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-meta)', marginTop: '2px' }}>Switch between light and dark themes</div>
+              <div className="form-group" style={{ marginBottom: 28 }}>
+                <label className="form-label" style={{ marginBottom: 12, display: 'block' }}>Theme</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  {([
+                    { key: 'light' as ThemePreference, label: 'Light mode' },
+                    { key: 'dark' as ThemePreference, label: 'Dark mode' },
+                    { key: 'system' as ThemePreference, label: 'System default' },
+                  ]).map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setPreference(opt.key)}
+                      className={preference === opt.key ? 'btn-primary' : 'btn-outline'}
+                      style={{ padding: '10px 18px' }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
-                <div onClick={toggleTheme} style={{ width: '44px', height: '24px', background: theme === 'dark' ? 'var(--blue)' : '#CBD5E1', borderRadius: '20px', position: 'relative', cursor: 'pointer', transition: 'all 0.3s' }}>
-                  <div style={{ position: 'absolute', top: '3px', left: theme === 'dark' ? '23px' : '3px', width: '18px', height: '18px', background: 'white', borderRadius: '50%', transition: 'all 0.3s' }} />
+                <div className="card-subtitle" style={{ marginTop: 12 }}>
+                  Active: {resolvedTheme === 'dark' ? 'Dark' : 'Light'}
+                  {preference === 'system' ? ' (device)' : ''}
                 </div>
               </div>
               <div className="form-group">
