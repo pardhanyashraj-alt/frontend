@@ -1,22 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SuperAdminLogin() {
   const router = useRouter();
+  const { login, isAuthenticated, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'sudo_admin') {
+      router.push('/superadmin/dashboard');
+    }
+  }, [isAuthenticated, user, router]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setError('');
+
+    const res = await login(email, password);
+    if (res.success) {
       router.push('/superadmin/dashboard');
-    }, 1200);
+    } else {
+      setError(res.error || 'Login failed');
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,6 +56,13 @@ export default function SuperAdminLogin() {
             <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#111827', marginBottom: '6px' }}>Super Admin Login</h1>
             <p style={{ fontSize: '14px', color: '#6B7280' }}>Access the platform management console</p>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#B91C1C', padding: '12px', borderRadius: '12px', fontSize: '13px', marginBottom: '20px', fontWeight: 500, textAlign: 'center' }}>
+              {error}
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>

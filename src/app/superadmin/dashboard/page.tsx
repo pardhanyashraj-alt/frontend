@@ -1,34 +1,89 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import SuperAdminSidebar from "../../components/SuperAdminSidebar";
+import { useAuth } from "../../context/AuthContext";
+import { apiFetch } from "../../lib/api";
 
-const recentSchools = [
-  { name: "EduFlow Academy, Noida", admin: "Dr. Rajendra Kumar", date: "Mar 18, 2026", plan: "Pro", status: "Active" },
-  { name: "Greenfield Public School, Lucknow", admin: "Mrs. Kavita Nair", date: "Mar 15, 2026", plan: "Basic", status: "Active" },
-  { name: "St. Mary's Convent, Dehradun", admin: "Fr. Thomas", date: "Mar 10, 2026", plan: "Enterprise", status: "Active" },
-];
+// Same helper used in SchoolsPage — coerces DB boolean serialisation edge-cases
+function normaliseBool(val: unknown): boolean {
+  return val === true || val === "true" || val === 1;
+}
 
-const recentUploads = [
-  { book: "NCERT Mathematics Class 10", chapter: "Ch 8: Trigonometry", date: "Mar 19, 2026", status: "Processed" },
-  { book: "NCERT Science Class 9", chapter: "Ch 5: The Fundamental Unit of Life", date: "Mar 17, 2026", status: "Processed" },
-  { book: "NCERT English Class 10", chapter: "Ch 2: Nelson Mandela", date: "Mar 16, 2026", status: "Processing" },
-];
+interface BookListItem {
+  book_id: string;
+  book_name: string;
+  class_grade: number;
+  subject: string;
+  chapter_number: number;
+  chapter_title: string;
+}
 
 export default function SuperAdminDashboard() {
+  const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [stats, setStats] = useState({
+    schools: 0,
+    activeAdmins: 0,
+    chapters: 0,
+  });
+  const [latestSchools, setLatestSchools] = useState<any[]>([]);
+  const [recentChapters, setRecentChapters] = useState<BookListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const [schoolsRes, adminsRes, booksRes] = await Promise.all([
+          apiFetch("/sudo/schools"),
+          apiFetch("/sudo/admins?filter=active"),
+          apiFetch("/books/"),           // GET /books/ — list all global books
+        ]);
+
+        if (schoolsRes.ok) {
+          const schoolsData: any[] = await schoolsRes.json();
+          // Normalise is_active so status badges render correctly
+          const normalised = schoolsData.map(s => ({ ...s, is_active: normaliseBool(s.is_active) }));
+          setStats(prev => ({ ...prev, schools: normalised.length }));
+          setLatestSchools(normalised.slice(0, 3));
+        }
+
+        if (adminsRes.ok) {
+          const adminsData = await adminsRes.json();
+          const allAdmins = adminsData.admins || [];
+          const activeCount = allAdmins.filter(
+            (a: any) => normaliseBool(a.is_active) && normaliseBool(a.school?.is_active)
+          ).length;
+          setStats(prev => ({ ...prev, activeAdmins: activeCount }));
+        }
+
+        if (booksRes.ok) {
+          // Each item in the list is one chapter entry — so list length = chapter count
+          const booksData: BookListItem[] = await booksRes.json();
+          setStats(prev => ({ ...prev, chapters: booksData.length }));
+          // Show the 3 most recently added chapters in the pipeline widget
+          setRecentChapters(booksData.slice(0, 3));
+        }
+      } catch (err) {
+        console.error("Dashboard fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStats();
+  }, []);
 
   return (
     <>
       <SuperAdminSidebar activePage="dashboard" />
 
       {/* Notification Sidebar */}
-      <div className={`notif-sidebar ${showNotifications ? 'open' : ''}`}>
+      <div className={`notif-sidebar ${showNotifications ? "open" : ""}`}>
         <div className="notif-header">
           <div className="notif-title">System Alerts</div>
           <button className="icon-btn" onClick={() => setShowNotifications(false)}>
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
         <div className="notif-list">
@@ -54,15 +109,15 @@ export default function SuperAdminDashboard() {
       <main className="main">
         <div className="topbar">
           <div className="topbar-left">
-            <div className="greeting">Welcome back, Platform Owner 🛡️</div>
+            <div className="greeting">Welcome back, {user?.first_name || "Owner"} 🛡️</div>
             <h1>Super Admin Console</h1>
           </div>
           <div className="topbar-right">
             <div className="icon-btn" onClick={() => setShowNotifications(true)}>
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6B7280" strokeWidth="2">
-                <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+                <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" />
               </svg>
-              <div className="notif-dot" style={{ background: '#1E40AF' }}></div>
+              <div className="notif-dot" style={{ background: "#1E40AF" }} />
             </div>
           </div>
         </div>
@@ -71,22 +126,22 @@ export default function SuperAdminDashboard() {
         <div className="stats-grid">
           <div className="stat-card blue">
             <div className="stat-icon blue">
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M3 21h18M3 10l9-7 9 7v11H3V10z"/><path d="M9 21V12h6v9"/></svg>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M3 21h18M3 10l9-7 9 7v11H3V10z" /><path d="M9 21V12h6v9" /></svg>
             </div>
-            <div className="stat-value">12</div>
+            <div className="stat-value">{loading ? "—" : stats.schools}</div>
             <div className="stat-label">Registered Schools</div>
-            <span className="stat-badge green">↑ 3 THIS MONTH</span>
+            <span className="stat-badge green">LIVE STAT</span>
           </div>
           <div className="stat-card purple">
             <div className="stat-icon purple">
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
             </div>
-            <div className="stat-value">8</div>
+            <div className="stat-value">{loading ? "—" : stats.activeAdmins}</div>
             <div className="stat-label">Active Admins</div>
           </div>
           <div className="stat-card green">
             <div className="stat-icon green">
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
             </div>
             <div className="stat-value">₹1.2L</div>
             <div className="stat-label">Monthly Revenue</div>
@@ -94,69 +149,94 @@ export default function SuperAdminDashboard() {
           </div>
           <div className="stat-card orange">
             <div className="stat-icon orange">
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" /></svg>
             </div>
-            <div className="stat-value">47</div>
+            {/* Live chapter count from /books/ endpoint */}
+            <div className="stat-value">{loading ? "—" : stats.chapters}</div>
             <div className="stat-label">Chapters Processed</div>
             <span className="stat-badge green">AI CONTENT</span>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
           {[
-            { label: 'Register School', href: '/superadmin/schools', icon: <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M3 21h18M3 10l9-7 9 7v11H3V10z"/><path d="M9 21V12h6v9"/></svg>, color: '#1E40AF' },
-            { label: 'Upload Content', href: '/superadmin/content', icon: <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>, color: '#059669' },
-            { label: 'Manage Admins', href: '/superadmin/admins', icon: <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>, color: '#7C3AED' },
+            { label: "Register School", href: "/superadmin/schools", icon: <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M3 21h18M3 10l9-7 9 7v11H3V10z" /><path d="M9 21V12h6v9" /></svg>, color: "#1E40AF" },
+            { label: "Upload Content", href: "/superadmin/content", icon: <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>, color: "#059669" },
+            { label: "Manage Admins", href: "/superadmin/admins", icon: <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" /></svg>, color: "#7C3AED" },
           ].map((action, i) => (
-            <Link key={i} href={action.href} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', borderRadius: '14px', background: 'var(--card-bg)', border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--text-primary)', transition: 'all 0.2s' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: `${action.color}15`, color: action.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{action.icon}</div>
-              <div style={{ fontWeight: 600, fontSize: '14px' }}>{action.label}</div>
+            <Link key={i} href={action.href} style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 20px", borderRadius: 14, background: "var(--card-bg)", border: "1px solid var(--border)", textDecoration: "none", color: "var(--text-primary)", transition: "all 0.2s" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: `${action.color}15`, color: action.color, display: "flex", alignItems: "center", justifyContent: "center" }}>{action.icon}</div>
+              <div style={{ fontWeight: 600, fontSize: 14 }}>{action.label}</div>
             </Link>
           ))}
         </div>
 
-        {/* Tables */}
+        {/* Bottom grid */}
         <div className="bottom-grid">
+          {/* Recent Schools — from /sudo/schools API */}
           <div className="card">
             <div className="card-header">
-              <div><div className="card-title">Recent Schools</div><div className="card-subtitle">Latest registered institutions</div></div>
-              <Link href="/superadmin/schools" className="btn-outline" style={{ textDecoration:'none', fontSize:'12px' }}>View All</Link>
+              <div>
+                <div className="card-title">Recent Schools</div>
+                <div className="card-subtitle">Latest registered institutions</div>
+              </div>
+              <Link href="/superadmin/schools" className="btn-outline" style={{ textDecoration: "none", fontSize: 12 }}>View All</Link>
             </div>
-            {recentSchools.map((school, i) => (
+            {loading ? (
+              <div style={{ padding: "40px", textAlign: "center", color: "var(--text-meta)", fontSize: 14 }}>
+                <div className="spinner" style={{ margin: "0 auto 12px" }} />
+                Loading...
+              </div>
+            ) : latestSchools.length > 0 ? latestSchools.map((school, i) => (
               <div className="class-row" key={i}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#DBEAFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#1E40AF" strokeWidth="2"><path d="M3 21h18M3 10l9-7 9 7v11H3V10z"/></svg>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "#DBEAFE", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#1E40AF" strokeWidth="2"><path d="M3 21h18M3 10l9-7 9 7v11H3V10z" /></svg>
                 </div>
                 <div className="class-info">
-                  <div className="class-name" style={{ fontSize: '13px' }}>{school.name}</div>
-                  <div className="class-meta">{school.admin} · {school.plan} · {school.date}</div>
+                  <div className="class-name" style={{ fontSize: 13 }}>{school.school_name}</div>
+                  <div className="class-meta">{school.admin_email} · {school.plan} · {new Date(school.created_at).toLocaleDateString()}</div>
                 </div>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--green-dark)', background: 'var(--green-light)', padding: '4px 8px', borderRadius: '6px' }}>{school.status}</span>
+                {/* is_active is already normalised above — renders correctly */}
+                <span style={{ fontSize: 11, fontWeight: 700, color: school.is_active ? "var(--green-dark)" : "var(--red)", background: school.is_active ? "var(--green-light)" : "#FEE2E2", padding: "4px 8px", borderRadius: 6 }}>
+                  {school.is_active ? "Active" : "Inactive"}
+                </span>
               </div>
-            ))}
+            )) : (
+              <div style={{ padding: 40, textAlign: "center", color: "var(--text-meta)", fontSize: 14 }}>No schools registered yet.</div>
+            )}
           </div>
 
+          {/* AI Content Pipeline — from /books/ API */}
           <div className="card">
             <div className="card-header">
-              <div><div className="card-title">AI Content Pipeline</div><div className="card-subtitle">Recent chapter uploads</div></div>
-              <Link href="/superadmin/content" className="btn-outline" style={{ textDecoration:'none', fontSize:'12px' }}>View All</Link>
+              <div>
+                <div className="card-title">AI Content Pipeline</div>
+                <div className="card-subtitle">Recent chapter uploads</div>
+              </div>
+              <Link href="/superadmin/content" className="btn-outline" style={{ textDecoration: "none", fontSize: 12 }}>View All</Link>
             </div>
-            {recentUploads.map((up, i) => (
+            {loading ? (
+              <div style={{ padding: "40px", textAlign: "center", color: "var(--text-meta)", fontSize: 14 }}>
+                <div className="spinner" style={{ margin: "0 auto 12px" }} />
+                Loading...
+              </div>
+            ) : recentChapters.length > 0 ? recentChapters.map((ch, i) => (
               <div className="class-row" key={i}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: up.status === 'Processed' ? 'var(--green-light)' : '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {up.status === 'Processed' ?
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="var(--green-dark)" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg> :
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#D97706" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  }
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--green-light)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="var(--green-dark)" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
                 </div>
                 <div className="class-info">
-                  <div className="class-name" style={{ fontSize: '13px' }}>{up.chapter}</div>
-                  <div className="class-meta">{up.book} · {up.date}</div>
+                  <div className="class-name" style={{ fontSize: 13 }}>Ch {ch.chapter_number}: {ch.chapter_title}</div>
+                  <div className="class-meta">{ch.book_name} · Class {ch.class_grade} · {ch.subject}</div>
                 </div>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: up.status === 'Processed' ? 'var(--green-dark)' : '#D97706', background: up.status === 'Processed' ? 'var(--green-light)' : '#FEF3C7', padding: '4px 8px', borderRadius: '6px' }}>{up.status}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--green-dark)", background: "var(--green-light)", padding: "4px 8px", borderRadius: 6 }}>
+                  Processed
+                </span>
               </div>
-            ))}
+            )) : (
+              <div style={{ padding: 40, textAlign: "center", color: "var(--text-meta)", fontSize: 14 }}>No chapters uploaded yet.</div>
+            )}
           </div>
         </div>
       </main>

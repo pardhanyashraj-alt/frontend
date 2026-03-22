@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAuth } from "../context/AuthContext";
+import { apiFetch } from "../lib/api";
 
 interface SuperAdminSidebarProps {
   activePage: "dashboard" | "schools" | "content" | "admins" | "subscriptions" | "settings";
 }
 
 export default function SuperAdminSidebar({ activePage }: SuperAdminSidebarProps) {
+  const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -75,7 +78,6 @@ export default function SuperAdminSidebar({ activePage }: SuperAdminSidebarProps
               <path d="M3 21h18M3 10l9-7 9 7v11H3V10z" /><path d="M9 21V12h6v9" />
             </svg>
             Schools
-            <span className="nav-badge" style={{ background: '#1E40AF' }}>12</span>
           </Link>
         </div>
 
@@ -97,7 +99,6 @@ export default function SuperAdminSidebar({ activePage }: SuperAdminSidebarProps
               <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
             </svg>
             Admin Management
-            <span className="nav-badge" style={{ background: '#1E40AF' }}>8</span>
           </Link>
           <Link href="/superadmin/subscriptions" className={`nav-item${activePage === "subscriptions" ? " active sa-active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -114,12 +115,27 @@ export default function SuperAdminSidebar({ activePage }: SuperAdminSidebarProps
           </Link>
         </div>
 
-        <div className="sidebar-user">
-          <div className="avatar" style={{ background: '#1E40AF' }}>SA</div>
-          <div>
-            <div style={{ fontSize: "13px", fontWeight: 600 }}>Platform Owner</div>
-            <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>Super Administrator</div>
+        <div className="sidebar-user" style={{ position: 'relative' }}>
+          <div className="avatar" style={{ background: '#1E40AF' }}>
+            {user?.first_name?.[0] || 'S'}{user?.last_name?.[0] || 'A'}
           </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: "13px", fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user?.first_name} {user?.last_name}
+            </div>
+            <div style={{ fontSize: "11px", color: "var(--text-secondary)", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user?.email}
+            </div>
+          </div>
+          <button 
+            onClick={logout}
+            style={{ background: 'none', border: 'none', padding: '6px', cursor: 'pointer', color: '#9CA3AF', borderRadius: '8px' }}
+            title="Logout"
+          >
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+            </svg>
+          </button>
         </div>
       </nav>
 
