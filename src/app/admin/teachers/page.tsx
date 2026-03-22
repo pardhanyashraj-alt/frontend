@@ -4,18 +4,18 @@ import { useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 
 interface Teacher {
-  id: number; name: string; initials: string; subject: string; designation: string;
+  id: number; name: string; firstName?: string; lastName?: string; dob?: string; initials: string; designation: string;
   salary: number; joinDate: string; phone: string; email: string; status: "active" | "inactive";
   color: string;
 }
 
 const initialTeachers: Teacher[] = [
-  { id: 1, name: "Ms. Rita Sharma", initials: "RS", subject: "Mathematics", designation: "Senior Teacher", salary: 65000, joinDate: "Aug 2018", phone: "+91 98765 43210", email: "rita@eduflow.edu", status: "active", color: "var(--blue)" },
-  { id: 2, name: "Mrs. Sunita Gupta", initials: "SG", subject: "Science", designation: "Subject Head", salary: 72000, joinDate: "Jan 2016", phone: "+91 98765 43211", email: "sunita@eduflow.edu", status: "active", color: "var(--orange)" },
-  { id: 3, name: "Mr. David Wilson", initials: "DW", subject: "English Lit", designation: "Teacher", salary: 55000, joinDate: "Mar 2020", phone: "+91 98765 43212", email: "david@eduflow.edu", status: "active", color: "var(--green)" },
-  { id: 4, name: "Ms. Priya Mehta", initials: "PM", subject: "History", designation: "Teacher", salary: 52000, joinDate: "Jul 2021", phone: "+91 98765 43213", email: "priya@eduflow.edu", status: "active", color: "var(--purple)" },
-  { id: 5, name: "Mr. Anil Verma", initials: "AV", subject: "Physics", designation: "Senior Teacher", salary: 68000, joinDate: "May 2017", phone: "+91 98765 43214", email: "anil@eduflow.edu", status: "active", color: "var(--blue-mid)" },
-  { id: 6, name: "Mrs. Kavita Nair", initials: "KN", subject: "Computer Science", designation: "HOD", salary: 80000, joinDate: "Sep 2014", phone: "+91 98765 43215", email: "kavita@eduflow.edu", status: "inactive", color: "var(--red)" },
+  { id: 1, name: "Ms. Rita Sharma", initials: "RS", designation: "Senior Teacher", salary: 65000, joinDate: "Aug 2018", phone: "+91 98765 43210", email: "rita@eduflow.edu", status: "active", color: "var(--blue)" },
+  { id: 2, name: "Mrs. Sunita Gupta", initials: "SG", designation: "Subject Head", salary: 72000, joinDate: "Jan 2016", phone: "+91 98765 43211", email: "sunita@eduflow.edu", status: "active", color: "var(--orange)" },
+  { id: 3, name: "Mr. David Wilson", initials: "DW", designation: "Teacher", salary: 55000, joinDate: "Mar 2020", phone: "+91 98765 43212", email: "david@eduflow.edu", status: "active", color: "var(--green)" },
+  { id: 4, name: "Ms. Priya Mehta", initials: "PM", designation: "Teacher", salary: 52000, joinDate: "Jul 2021", phone: "+91 98765 43213", email: "priya@eduflow.edu", status: "active", color: "var(--purple)" },
+  { id: 5, name: "Mr. Anil Verma", initials: "AV", designation: "Senior Teacher", salary: 68000, joinDate: "May 2017", phone: "+91 98765 43214", email: "anil@eduflow.edu", status: "active", color: "var(--blue-mid)" },
+  { id: 6, name: "Mrs. Kavita Nair", initials: "KN", designation: "HOD", salary: 80000, joinDate: "Sep 2014", phone: "+91 98765 43215", email: "kavita@eduflow.edu", status: "inactive", color: "var(--red)" },
 ];
 
 const designations = ["Teacher", "Senior Teacher", "Subject Head", "HOD", "Vice Principal"];
@@ -29,24 +29,25 @@ export default function TeacherManagement() {
   const [newDesignation, setNewDesignation] = useState("");
   const [salaryMonth, setSalaryMonth] = useState("March 2026");
 
-  const [newTeacher, setNewTeacher] = useState({ name: "", subject: "", designation: "Teacher", salary: "", phone: "", email: "" });
+  const [newTeacher, setNewTeacher] = useState({ firstName: "", lastName: "", dob: "", designation: "Teacher", salary: "", phone: "", email: "" });
 
-  const filtered = teachers.filter(t => t.name.toLowerCase().includes(search.toLowerCase()) || t.subject.toLowerCase().includes(search.toLowerCase()));
+  const filtered = teachers.filter(t => t.name.toLowerCase().includes(search.toLowerCase()));
   const activeCount = teachers.filter(t => t.status === "active").length;
   const totalSalary = teachers.filter(t => t.status === "active").reduce((a, b) => a + b.salary, 0);
 
   const handleAddTeacher = () => {
-    const initials = newTeacher.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const fullName = `${newTeacher.firstName} ${newTeacher.lastName}`.trim();
+    const initials = (newTeacher.firstName[0] || '' + (newTeacher.lastName[0] || '')).toUpperCase().slice(0, 2);
     const colors = ["var(--blue)", "var(--orange)", "var(--green)", "var(--purple)", "var(--blue-mid)"];
     setTeachers([...teachers, {
-      id: Date.now(), name: newTeacher.name, initials, subject: newTeacher.subject,
+      id: Date.now(), name: fullName, firstName: newTeacher.firstName, lastName: newTeacher.lastName, dob: newTeacher.dob, initials,
       designation: newTeacher.designation, salary: parseInt(newTeacher.salary) || 0,
       joinDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
       phone: newTeacher.phone, email: newTeacher.email, status: "active",
       color: colors[Math.floor(Math.random() * colors.length)],
     }]);
     setShowAddModal(false);
-    setNewTeacher({ name: "", subject: "", designation: "Teacher", salary: "", phone: "", email: "" });
+    setNewTeacher({ firstName: "", lastName: "", dob: "", designation: "Teacher", salary: "", phone: "", email: "" });
   };
 
   const handlePromote = () => {
@@ -72,14 +73,20 @@ export default function TeacherManagement() {
               </button>
             </div>
             <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">Full Name *</label>
-                <input className="form-input" placeholder="e.g. John Smith" value={newTeacher.name} onChange={e => setNewTeacher({...newTeacher, name: e.target.value})} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label">First Name *</label>
+                  <input className="form-input" placeholder="e.g. John" value={newTeacher.firstName} onChange={e => setNewTeacher({...newTeacher, firstName: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Last Name *</label>
+                  <input className="form-input" placeholder="e.g. Smith" value={newTeacher.lastName} onChange={e => setNewTeacher({...newTeacher, lastName: e.target.value})} />
+                </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
                 <div className="form-group">
-                  <label className="form-label">Subject</label>
-                  <input className="form-input" placeholder="e.g. Mathematics" value={newTeacher.subject} onChange={e => setNewTeacher({...newTeacher, subject: e.target.value})} />
+                  <label className="form-label">Date of Birth *</label>
+                  <input className="form-input" type="date" value={newTeacher.dob} onChange={e => setNewTeacher({...newTeacher, dob: e.target.value})} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Designation</label>
@@ -105,7 +112,7 @@ export default function TeacherManagement() {
             </div>
             <div className="modal-footer">
               <button className="btn-outline" onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button className="btn-primary" onClick={handleAddTeacher} style={{ background: 'var(--purple)' }} disabled={!newTeacher.name || !newTeacher.subject}>Add Teacher</button>
+              <button className="btn-primary" onClick={handleAddTeacher} style={{ background: 'var(--purple)' }} disabled={!newTeacher.firstName || !newTeacher.lastName || !newTeacher.dob}>Add Teacher</button>
             </div>
           </div>
         </div>
@@ -126,7 +133,7 @@ export default function TeacherManagement() {
                 <div className="avatar" style={{ background: showSalaryModal.color }}>{showSalaryModal.initials}</div>
                 <div>
                   <div style={{ fontWeight: 700 }}>{showSalaryModal.name}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-meta)' }}>{showSalaryModal.designation} · {showSalaryModal.subject}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-meta)' }}>{showSalaryModal.designation}</div>
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -231,11 +238,6 @@ export default function TeacherManagement() {
             <div className="stat-value">₹{(totalSalary / 1000).toFixed(0)}K</div>
             <div className="stat-label">Monthly Payroll</div>
           </div>
-          <div className="stat-card orange">
-            <div className="stat-icon orange"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div>
-            <div className="stat-value">6</div>
-            <div className="stat-label">Subjects Covered</div>
-          </div>
         </div>
 
         {/* Table */}
@@ -255,7 +257,6 @@ export default function TeacherManagement() {
               <thead>
                 <tr style={{ background: '#F8FAFC', textAlign: 'left' }}>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Teacher</th>
-                  <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Subject</th>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Designation</th>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Salary</th>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Joined</th>
@@ -274,7 +275,6 @@ export default function TeacherManagement() {
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: '16px 20px', fontSize: '14px' }}>{t.subject}</td>
                     <td style={{ padding: '16px 20px' }}>
                       <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--purple-dark)', background: 'var(--purple-light)', padding: '4px 8px', borderRadius: '6px' }}>{t.designation}</span>
                     </td>

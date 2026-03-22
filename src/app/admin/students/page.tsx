@@ -4,7 +4,7 @@ import { useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 
 interface Student {
-  id: number; name: string; initials: string; class: string; section: string;
+  id: number; name: string; firstName?: string; lastName?: string; dob?: string; initials: string; class: string; section: string;
   rollNo: number; parentName: string; phone: string; feeStatus: "Paid" | "Pending" | "Overdue";
   status: "active" | "inactive"; color: string;
 }
@@ -27,7 +27,7 @@ export default function StudentManagement() {
   const [search, setSearch] = useState("");
   const [gradeFilter, setGradeFilter] = useState("All");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newStudent, setNewStudent] = useState({ name: "", class: "Grade 10", section: "A", parentName: "", phone: "" });
+  const [newStudent, setNewStudent] = useState({ firstName: "", lastName: "", dob: "", class: "Grade 10", section: "A", parentName: "", phone: "" });
 
   const filtered = students.filter(s => {
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -49,16 +49,17 @@ export default function StudentManagement() {
   };
 
   const handleAdd = () => {
-    const initials = newStudent.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const fullName = `${newStudent.firstName} ${newStudent.lastName}`.trim();
+    const initials = (newStudent.firstName[0] || '' + (newStudent.lastName[0] || '')).toUpperCase().slice(0, 2);
     const colors = ["var(--blue)", "var(--orange)", "var(--green)", "var(--purple)", "var(--blue-mid)"];
     setStudents([...students, {
-      id: Date.now(), name: newStudent.name, initials, class: newStudent.class,
+      id: Date.now(), name: fullName, firstName: newStudent.firstName, lastName: newStudent.lastName, dob: newStudent.dob, initials, class: newStudent.class,
       section: newStudent.section, rollNo: students.length + 1, parentName: newStudent.parentName,
       phone: newStudent.phone, feeStatus: "Pending", status: "active",
       color: colors[Math.floor(Math.random() * colors.length)],
     }]);
     setShowAddModal(false);
-    setNewStudent({ name: "", class: "Grade 10", section: "A", parentName: "", phone: "" });
+    setNewStudent({ firstName: "", lastName: "", dob: "", class: "Grade 10", section: "A", parentName: "", phone: "" });
   };
 
   return (
@@ -75,9 +76,19 @@ export default function StudentManagement() {
               </button>
             </div>
             <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">Student Full Name *</label>
-                <input className="form-input" placeholder="e.g. Aryan Kumar" value={newStudent.name} onChange={e => setNewStudent({...newStudent, name: e.target.value})} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label">First Name *</label>
+                  <input className="form-input" placeholder="e.g. Aryan" value={newStudent.firstName} onChange={e => setNewStudent({...newStudent, firstName: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Last Name *</label>
+                  <input className="form-input" placeholder="e.g. Kumar" value={newStudent.lastName} onChange={e => setNewStudent({...newStudent, lastName: e.target.value})} />
+                </div>
+              </div>
+              <div className="form-group" style={{ marginTop: '16px' }}>
+                <label className="form-label">Date of Birth *</label>
+                <input className="form-input" type="date" value={newStudent.dob} onChange={e => setNewStudent({...newStudent, dob: e.target.value})} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
                 <div className="form-group">
@@ -104,7 +115,7 @@ export default function StudentManagement() {
             </div>
             <div className="modal-footer">
               <button className="btn-outline" onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button className="btn-primary" style={{ background: 'var(--purple)' }} onClick={handleAdd} disabled={!newStudent.name}>Enroll Student</button>
+              <button className="btn-primary" style={{ background: 'var(--purple)' }} onClick={handleAdd} disabled={!newStudent.firstName || !newStudent.lastName || !newStudent.dob}>Enroll Student</button>
             </div>
           </div>
         </div>
