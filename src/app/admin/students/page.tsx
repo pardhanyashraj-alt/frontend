@@ -2,28 +2,12 @@
 
 import { useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
-
-interface Student {
-  id: number; name: string; firstName?: string; lastName?: string; dob?: string; initials: string; class: string; section: string;
-  rollNo: number; parentName: string; phone: string; email?: string; admissionNo?: string; feeStatus: "Paid" | "Pending" | "Overdue";
-  status: "active" | "inactive"; color: string;
-}
-
-const initialStudents: Student[] = [
-  { id: 1, name: "Anjali Kapoor", initials: "AK", class: "Grade 10", section: "A", rollNo: 1, parentName: "Mr. Kapoor", phone: "+91 98765 11111", feeStatus: "Paid", status: "active", color: "var(--blue-mid)" },
-  { id: 2, name: "Rohan Mehta", initials: "RM", class: "Grade 10", section: "A", rollNo: 2, parentName: "Mr. Mehta", phone: "+91 98765 22222", feeStatus: "Pending", status: "active", color: "var(--orange)" },
-  { id: 3, name: "Shreya Mishra", initials: "SM", class: "Grade 9", section: "B", rollNo: 3, parentName: "Mrs. Mishra", phone: "+91 98765 33333", feeStatus: "Paid", status: "active", color: "var(--purple)" },
-  { id: 4, name: "Aryan Sharma", initials: "AS", class: "Grade 11", section: "A", rollNo: 4, parentName: "Mr. Sharma", phone: "+91 98765 44444", feeStatus: "Overdue", status: "active", color: "var(--green)" },
-  { id: 5, name: "Priya Patel", initials: "PP", class: "Grade 10", section: "B", rollNo: 5, parentName: "Mr. Patel", phone: "+91 98765 55555", feeStatus: "Paid", status: "active", color: "var(--blue)" },
-  { id: 6, name: "Vikram Singh", initials: "VS", class: "Grade 8", section: "A", rollNo: 6, parentName: "Mr. Singh", phone: "+91 98765 66666", feeStatus: "Paid", status: "active", color: "var(--orange)" },
-  { id: 7, name: "Neha Gupta", initials: "NG", class: "Grade 9", section: "A", rollNo: 7, parentName: "Mrs. Gupta", phone: "+91 98765 77777", feeStatus: "Pending", status: "active", color: "var(--purple)" },
-  { id: 8, name: "Kabir Das", initials: "KD", class: "Grade 11", section: "B", rollNo: 8, parentName: "Mr. Das", phone: "+91 98765 88888", feeStatus: "Overdue", status: "inactive", color: "var(--blue-mid)" },
-];
+import { useAdminContext, Student } from "../../../context/AdminContext";
 
 const gradeOptions = ["All", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
 
 export default function StudentManagement() {
-  const [students, setStudents] = useState<Student[]>(initialStudents);
+  const { students, currentAcademicYear, addStudent, updateStudent } = useAdminContext();
   const [search, setSearch] = useState("");
   const [gradeFilter, setGradeFilter] = useState("All");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -52,12 +36,27 @@ export default function StudentManagement() {
     const fullName = `${newStudent.firstName} ${newStudent.lastName}`.trim();
     const initials = (newStudent.firstName[0] || '' + (newStudent.lastName[0] || '')).toUpperCase().slice(0, 2);
     const colors = ["var(--blue)", "var(--orange)", "var(--green)", "var(--purple)", "var(--blue-mid)"];
-    setStudents([...students, {
-      id: Date.now(), name: fullName, firstName: newStudent.firstName, lastName: newStudent.lastName, dob: newStudent.dob, initials, class: newStudent.class,
-      section: newStudent.section, rollNo: students.length + 1, parentName: newStudent.parentName,
-      phone: newStudent.phone, email: newStudent.email, admissionNo: newStudent.admissionNo, feeStatus: "Pending", status: "active",
+    
+    addStudent({
+      name: fullName, 
+      firstName: newStudent.firstName, 
+      lastName: newStudent.lastName, 
+      dob: newStudent.dob, 
+      initials, 
+      class: newStudent.class,
+      section: newStudent.section, 
+      rollNo: students.length + 1, 
+      parentName: newStudent.parentName,
+      phone: newStudent.phone, 
+      email: newStudent.email, 
+      admissionNo: newStudent.admissionNo, 
+      feeStatus: "Pending", 
+      status: "active",
+      academicStatus: "Pass",
       color: colors[Math.floor(Math.random() * colors.length)],
-    }]);
+      academicYear: currentAcademicYear,
+    });
+    
     setShowAddModal(false);
     setNewStudent({ firstName: "", lastName: "", dob: "", class: "Grade 10", section: "A", parentName: "", phone: "", email: "", admissionNo: "" });
   };
@@ -190,9 +189,10 @@ export default function StudentManagement() {
                 <tr style={{ background: '#F8FAFC', textAlign: 'left' }}>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Student</th>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Class / Sec</th>
-                  <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Roll No</th>
+                  <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Admission No</th>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Parent</th>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Fee Status</th>
+                  <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Result</th>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Actions</th>
                 </tr>
               </thead>
@@ -211,13 +211,23 @@ export default function StudentManagement() {
                         </div>
                       </td>
                       <td style={{ padding: '16px 20px', fontSize: '14px' }}>{s.class} — {s.section}</td>
-                      <td style={{ padding: '16px 20px', fontWeight: 700, fontSize: '14px' }}>{s.rollNo}</td>
+                      <td style={{ padding: '16px 20px', fontWeight: 700, fontSize: '14px' }}>{s.admissionNo || '-'}</td>
                       <td style={{ padding: '16px 20px', fontSize: '13px' }}>
                         <div>{s.parentName}</div>
                         <div style={{ fontSize: '11px', color: 'var(--text-meta)' }}>{s.phone}</div>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
                         <span style={{ fontSize: '11px', fontWeight: 700, color: fStyle.color, background: fStyle.bg, padding: '4px 10px', borderRadius: '6px' }}>{s.feeStatus}</span>
+                      </td>
+                      <td style={{ padding: '16px 20px' }}>
+                        <select 
+                          value={s.academicStatus} 
+                          onChange={e => updateStudent(s.id, { academicStatus: e.target.value as "Pass" | "Fail" })}
+                          style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px', background: s.academicStatus === "Fail" ? "#FEE2E2" : "#DCFCE7", color: s.academicStatus === "Fail" ? "var(--red)" : "var(--green-dark)", outline: 'none', cursor: 'pointer', fontWeight: 600 }}
+                        >
+                          <option value="Pass">Pass</option>
+                          <option value="Fail">Fail</option>
+                        </select>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
                         <div style={{ display: 'flex', gap: '6px' }}>
