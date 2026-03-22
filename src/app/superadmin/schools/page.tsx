@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import SuperAdminSidebar from "../../components/SuperAdminSidebar";
+import { State, City } from "country-state-city";
 
 interface School {
   id: number; name: string; city: string; state: string; board: string;
@@ -49,6 +50,17 @@ export default function SchoolsPage() {
   const [successToast, setSuccessToast] = useState(false);
   const certRef = useRef<HTMLInputElement>(null);
   const nocRef = useRef<HTMLInputElement>(null);
+
+  const statesList = useMemo(() => State.getStatesOfCountry("IN"), []);
+  const [citiesList, setCitiesList] = useState<any[]>([]);
+
+  // When editing or if state is already set (not common for register, but good practice)
+  const handleStateChange = (stateCode: string) => {
+    setForm(prev => ({ ...prev, state: stateCode, city: "" }));
+    setCitiesList(City.getCitiesOfState("IN", stateCode));
+    if (errors.state) setErrors(prev => { const n = { ...prev }; delete n.state; return n; });
+    if (errors.city) setErrors(prev => { const n = { ...prev }; delete n.city; return n; });
+  };
 
   const filtered = schools.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.city.toLowerCase().includes(search.toLowerCase()));
 
@@ -204,26 +216,35 @@ export default function SchoolsPage() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                     <div className="form-group">
-                      <label className="form-label">City *</label>
-                      <input
+                      <label className="form-label">State *</label>
+                      <select
                         className="form-input"
-                        placeholder="City"
-                        value={form.city}
-                        onChange={e => setForm({ ...form, city: e.target.value })}
-                        style={{ borderColor: errors.city ? '#EF4444' : '' }}
-                      />
-                      {errors.city && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>{errors.city}</div>}
+                        value={form.state}
+                        onChange={e => handleStateChange(e.target.value)}
+                        style={{ borderColor: errors.state ? '#EF4444' : '' }}
+                      >
+                        <option value="">Select State</option>
+                        {statesList.map(s => (
+                          <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+                        ))}
+                      </select>
+                      {errors.state && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>{errors.state}</div>}
                     </div>
                     <div className="form-group">
-                      <label className="form-label">State *</label>
-                      <input
+                      <label className="form-label">City *</label>
+                      <select
                         className="form-input"
-                        placeholder="State"
-                        value={form.state}
-                        onChange={e => setForm({ ...form, state: e.target.value })}
-                        style={{ borderColor: errors.state ? '#EF4444' : '' }}
-                      />
-                      {errors.state && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>{errors.state}</div>}
+                        value={form.city}
+                        onChange={e => setForm({ ...form, city: e.target.value })}
+                        disabled={!form.state}
+                        style={{ borderColor: errors.city ? '#EF4444' : '', opacity: !form.state ? 0.6 : 1, cursor: !form.state ? 'not-allowed' : 'pointer' }}
+                      >
+                        <option value="">Select City</option>
+                        {citiesList.map(c => (
+                          <option key={c.name} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
+                      {errors.city && <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>{errors.city}</div>}
                     </div>
                   </div>
 
@@ -420,7 +441,14 @@ export default function SchoolsPage() {
             <div className="modal-footer">
               {step > 1 && <button className="btn-outline" onClick={() => setStep(step - 1)}>← Back</button>}
               {step < 3 ? (
-                <button className="btn-primary" style={{ background: '#1E40AF', marginLeft: 'auto' }} onClick={handleContinue}>Continue →</button>
+                <button 
+                  className="btn-primary" 
+                  style={{ background: '#1E40AF', marginLeft: 'auto', opacity: (step === 1 && (!form.school_name || !form.admin_email || !form.state || !form.city || !form.board || !form.affiliation_number)) ? 0.6 : 1 }} 
+                  onClick={handleContinue}
+                  disabled={step === 1 && (!form.school_name || !form.admin_email || !form.state || !form.city || !form.board || !form.affiliation_number)}
+                >
+                  Continue →
+                </button>
               ) : (
                 <button className="btn-primary" style={{ background: '#1E40AF', marginLeft: 'auto' }} onClick={handleRegister} disabled={!form.plan}>Register School</button>
               )}
