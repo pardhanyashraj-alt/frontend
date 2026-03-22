@@ -5,7 +5,7 @@ import AdminSidebar from "../../components/AdminSidebar";
 
 interface Student {
   id: number; name: string; firstName?: string; lastName?: string; dob?: string; initials: string; class: string; section: string;
-  rollNo: number; parentName: string; phone: string; feeStatus: "Paid" | "Pending" | "Overdue";
+  rollNo: number; parentName: string; phone: string; email?: string; admissionNo?: string; feeStatus: "Paid" | "Pending" | "Overdue";
   status: "active" | "inactive"; color: string;
 }
 
@@ -27,7 +27,7 @@ export default function StudentManagement() {
   const [search, setSearch] = useState("");
   const [gradeFilter, setGradeFilter] = useState("All");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newStudent, setNewStudent] = useState({ firstName: "", lastName: "", dob: "", class: "Grade 10", section: "A", parentName: "", phone: "" });
+  const [newStudent, setNewStudent] = useState({ firstName: "", lastName: "", dob: "", class: "Grade 10", section: "A", parentName: "", phone: "", email: "", admissionNo: "" });
 
   const filtered = students.filter(s => {
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -55,11 +55,11 @@ export default function StudentManagement() {
     setStudents([...students, {
       id: Date.now(), name: fullName, firstName: newStudent.firstName, lastName: newStudent.lastName, dob: newStudent.dob, initials, class: newStudent.class,
       section: newStudent.section, rollNo: students.length + 1, parentName: newStudent.parentName,
-      phone: newStudent.phone, feeStatus: "Pending", status: "active",
+      phone: newStudent.phone, email: newStudent.email, admissionNo: newStudent.admissionNo, feeStatus: "Pending", status: "active",
       color: colors[Math.floor(Math.random() * colors.length)],
     }]);
     setShowAddModal(false);
-    setNewStudent({ firstName: "", lastName: "", dob: "", class: "Grade 10", section: "A", parentName: "", phone: "" });
+    setNewStudent({ firstName: "", lastName: "", dob: "", class: "Grade 10", section: "A", parentName: "", phone: "", email: "", admissionNo: "" });
   };
 
   return (
@@ -75,7 +75,7 @@ export default function StudentManagement() {
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
-            <div className="modal-body">
+            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div className="form-group">
                   <label className="form-label">First Name *</label>
@@ -107,6 +107,16 @@ export default function StudentManagement() {
               <div className="form-group" style={{ marginTop: '16px' }}>
                 <label className="form-label">Parent / Guardian Name</label>
                 <input className="form-input" placeholder="e.g. Mr. Kumar" value={newStudent.parentName} onChange={e => setNewStudent({...newStudent, parentName: e.target.value})} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label">Email Address</label>
+                  <input className="form-input" type="email" placeholder="e.g. aryan@example.com" value={newStudent.email} onChange={e => setNewStudent({...newStudent, email: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Admission Number</label>
+                  <input className="form-input" placeholder="e.g. ADM-2026-001" value={newStudent.admissionNo} onChange={e => setNewStudent({...newStudent, admissionNo: e.target.value})} />
+                </div>
               </div>
               <div className="form-group" style={{ marginTop: '16px' }}>
                 <label className="form-label">Contact Number</label>
