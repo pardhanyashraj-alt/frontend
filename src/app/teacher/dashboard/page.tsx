@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Sidebar from "../../components/Sidebar";
-import AITeachingTools from "../../components/AITeachingTools";
 
 
 const initialClasses = [
@@ -233,8 +232,6 @@ export default function Home() {
             </button>
           </div>
         </div>
- 
-        <AITeachingTools />
  
         {/* Stats */}
         <div className="stats-grid">

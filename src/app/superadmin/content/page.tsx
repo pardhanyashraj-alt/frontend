@@ -31,6 +31,7 @@ export default function ContentPage() {
   const [classFilter, setClassFilter] = useState("All");
   const [subjectFilter, setSubjectFilter] = useState("All");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showBooksModal, setShowBooksModal] = useState(false);
 
   const [form, setForm] = useState({ board: "CBSE", class: "Class 10", subject: "Mathematics", chapter: "", chapterNo: "" });
 
@@ -68,6 +69,59 @@ export default function ContentPage() {
   return (
     <>
       <SuperAdminSidebar activePage="content" />
+
+      {/* Books Modal */}
+      {showBooksModal && (() => {
+        const books = Array.from(
+          uploads.reduce((map, u) => {
+            if (!map.has(u.book)) map.set(u.book, { book: u.book, board: u.board, subject: u.subject, chapters: [] });
+            map.get(u.book)!.chapters.push(u);
+            return map;
+          }, new Map<string, { book: string; board: string; subject: string; chapters: UploadedChapter[] }>())
+        ).map(([, v]) => v);
+        return (
+          <div className="modal-overlay" onClick={() => setShowBooksModal(false)}>
+            <div className="modal-content" style={{ maxWidth: '560px', maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <div>
+                  <div className="card-title">All Books</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-meta)', marginTop: '2px' }}>{books.length} books · {uploads.length} chapters total</div>
+                </div>
+                <button className="icon-btn" onClick={() => setShowBooksModal(false)}>
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {books.map((b, i) => (
+                  <div key={i} style={{ padding: '16px', background: '#F8FAFC', borderRadius: '14px', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#DBEAFE', color: '#1E40AF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)', marginBottom: '6px' }}>{b.book}</div>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 600, background: '#DBEAFE', color: '#1E40AF', padding: '3px 8px', borderRadius: '6px' }}>{b.board}</span>
+                          <span style={{ fontSize: '11px', fontWeight: 600, background: '#EDE9FE', color: '#7C3AED', padding: '3px 8px', borderRadius: '6px' }}>{b.subject}</span>
+                          <span style={{ fontSize: '11px', fontWeight: 600, background: '#D1FAE5', color: 'var(--green-dark)', padding: '3px 8px', borderRadius: '6px' }}>{b.chapters.length} chapter{b.chapters.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {b.chapters.map((ch, j) => (
+                            <div key={j} style={{ fontSize: '12px', color: 'var(--text-meta)', display: 'flex', justifyContent: 'space-between' }}>
+                              <span>Ch {ch.chapterNo}: {ch.chapter}</span>
+                              <span style={{ fontWeight: 600, color: ch.status === 'Processed' ? 'var(--green-dark)' : ch.status === 'Processing' ? '#D97706' : 'var(--red)' }}>{ch.status}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Upload Modal */}
       {showUploadModal && (
@@ -233,11 +287,9 @@ export default function ContentPage() {
         </div>
 
         {/* Stats */}
-        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
           <div className="stat-card blue"><div className="stat-value">{uploads.length}</div><div className="stat-label">Total Chapters</div></div>
-          <div className="stat-card green"><div className="stat-value">{uploads.filter(u => u.status === 'Processed').length}</div><div className="stat-label">Processed</div></div>
-          <div className="stat-card orange"><div className="stat-value">{uploads.filter(u => u.status === 'Processing').length}</div><div className="stat-label">In Queue</div></div>
-          <div className="stat-card purple"><div className="stat-value">{uploads.reduce((a, b) => a + (b.qaCount || 0) + (b.quizCount || 0), 0)}</div><div className="stat-label">Questions Generated</div></div>
+          <div className="stat-card purple" onClick={() => setShowBooksModal(true)} style={{ cursor: 'pointer' }} title="Click to view all books"><div className="stat-value">{new Set(uploads.map(u => u.book)).size}</div><div className="stat-label">Total Books ↗</div></div>
         </div>
 
         {/* Filters */}

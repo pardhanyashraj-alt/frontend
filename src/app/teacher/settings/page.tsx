@@ -4,7 +4,7 @@ import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import { useTheme } from "../../components/ThemeProvider";
 
-type TabType = "profile" | "security" | "notifications" | "ai" | "appearance" | "class";
+type TabType = "profile" | "security" | "notifications" | "appearance" | "class";
 
 export default function TeacherSettings() {
   const [activeTab, setActiveTab] = useState<TabType>("profile");
@@ -31,13 +31,6 @@ export default function TeacherSettings() {
     messages: true,
     testResults: true,
     email: false
-  });
-
-  // AI States
-  const [aiPrefs, setAiPrefs] = useState({
-    summaryLength: "Medium",
-    difficulty: "Medium",
-    quizCount: 5
   });
 
   // Appearance States
@@ -189,41 +182,6 @@ export default function TeacherSettings() {
             </div>
           </div>
         );
-      case "ai":
-        return (
-          <div className="card">
-            <div className="card-header" style={{ padding: '24px' }}>
-              <div className="card-title">AI Settings</div>
-            </div>
-            <div className="card-body" style={{ padding: '24px' }}>
-              <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-                <div className="form-group">
-                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Default Summary Length</label>
-                  <select className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={aiPrefs.summaryLength} onChange={e => setAiPrefs({...aiPrefs, summaryLength: e.target.value})}>
-                    <option>Short</option>
-                    <option>Medium</option>
-                    <option>Detailed</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Default Quiz Difficulty</label>
-                  <select className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={aiPrefs.difficulty} onChange={e => setAiPrefs({...aiPrefs, difficulty: e.target.value})}>
-                    <option>Easy</option>
-                    <option>Medium</option>
-                    <option>Hard</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Default Number of Quiz Questions</label>
-                  <input type="number" className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} value={aiPrefs.quizCount} onChange={e => setAiPrefs({...aiPrefs, quizCount: parseInt(e.target.value)})} />
-                </div>
-              </div>
-            </div>
-            <div className="card-footer" style={{ padding: '24px', display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
-              <button className="btn-primary" style={{ padding: '12px 28px' }} onClick={handleSave}>Save AI Preferences</button>
-            </div>
-          </div>
-        );
       case "appearance":
         return (
           <div className="card">
@@ -320,7 +278,6 @@ export default function TeacherSettings() {
             <button className={`tab-btn ${activeTab === "profile" ? "active" : ""}`} onClick={() => setActiveTab("profile")}>Profile</button>
             <button className={`tab-btn ${activeTab === "security" ? "active" : ""}`} onClick={() => setActiveTab("security")}>Security</button>
             <button className={`tab-btn ${activeTab === "notifications" ? "active" : ""}`} onClick={() => setActiveTab("notifications")}>Notifications</button>
-            <button className={`tab-btn ${activeTab === "ai" ? "active" : ""}`} onClick={() => setActiveTab("ai")}>AI Preference</button>
             <button className={`tab-btn ${activeTab === "appearance" ? "active" : ""}`} onClick={() => setActiveTab("appearance")}>Appearance</button>
             <button className={`tab-btn ${activeTab === "class" ? "active" : ""}`} onClick={() => setActiveTab("class")}>Class Settings</button>
           </div>

@@ -4,26 +4,26 @@ import { useState } from "react";
 import SuperAdminSidebar from "../../components/SuperAdminSidebar";
 
 interface Subscription {
-  id: number; school: string; city: string; plan: "Basic" | "Pro" | "Enterprise";
+  id: number; school: string; city: string; plan: "Trial" | "Paid";
   price: number; status: "Active" | "Expired" | "Grace Period";
   renewalDate: string; paymentMethod: string; lastPayment: string;
 }
 
 const initialSubs: Subscription[] = [
-  { id: 1, school: "EduFlow Academy", city: "Noida", plan: "Pro", price: 9999, status: "Active", renewalDate: "Apr 15, 2026", paymentMethod: "Bank Transfer", lastPayment: "Mar 15, 2026" },
-  { id: 2, school: "Greenfield Public School", city: "Lucknow", plan: "Basic", price: 4999, status: "Active", renewalDate: "Apr 8, 2026", paymentMethod: "Online Payment", lastPayment: "Mar 8, 2026" },
-  { id: 3, school: "St. Mary's Convent", city: "Dehradun", plan: "Enterprise", price: 19999, status: "Active", renewalDate: "Apr 20, 2026", paymentMethod: "Bank Transfer", lastPayment: "Mar 20, 2026" },
-  { id: 4, school: "DAV Model School", city: "Chandigarh", plan: "Pro", price: 9999, status: "Active", renewalDate: "May 1, 2026", paymentMethod: "Cheque", lastPayment: "Mar 1, 2026" },
-  { id: 5, school: "Ryan International", city: "Mumbai", plan: "Enterprise", price: 19999, status: "Active", renewalDate: "Apr 5, 2026", paymentMethod: "Online Payment", lastPayment: "Mar 5, 2026" },
-  { id: 6, school: "Sunshine Academy", city: "Jaipur", plan: "Basic", price: 4999, status: "Expired", renewalDate: "Mar 10, 2026", paymentMethod: "Cash", lastPayment: "Feb 10, 2026" },
-  { id: 7, school: "Vidya Niketan", city: "Patna", plan: "Pro", price: 9999, status: "Grace Period", renewalDate: "Mar 12, 2026", paymentMethod: "UPI", lastPayment: "Feb 12, 2026" },
-  { id: 8, school: "Crescent School", city: "Hyderabad", plan: "Basic", price: 4999, status: "Active", renewalDate: "Apr 14, 2026", paymentMethod: "Bank Transfer", lastPayment: "Mar 14, 2026" },
+  { id: 1, school: "EduFlow Academy", city: "Noida", plan: "Paid", price: 9999, status: "Active", renewalDate: "Apr 15, 2026", paymentMethod: "Bank Transfer", lastPayment: "Mar 15, 2026" },
+  { id: 2, school: "Greenfield Public School", city: "Lucknow", plan: "Trial", price: 0, status: "Active", renewalDate: "Apr 8, 2026", paymentMethod: "-", lastPayment: "-" },
+  { id: 3, school: "St. Mary's Convent", city: "Dehradun", plan: "Paid", price: 19999, status: "Active", renewalDate: "Apr 20, 2026", paymentMethod: "Bank Transfer", lastPayment: "Mar 20, 2026" },
+  { id: 4, school: "DAV Model School", city: "Chandigarh", plan: "Paid", price: 9999, status: "Active", renewalDate: "May 1, 2026", paymentMethod: "Cheque", lastPayment: "Mar 1, 2026" },
+  { id: 5, school: "Ryan International", city: "Mumbai", plan: "Paid", price: 19999, status: "Active", renewalDate: "Apr 5, 2026", paymentMethod: "Online Payment", lastPayment: "Mar 5, 2026" },
+  { id: 6, school: "Sunshine Academy", city: "Jaipur", plan: "Trial", price: 0, status: "Expired", renewalDate: "Mar 10, 2026", paymentMethod: "-", lastPayment: "-" },
+  { id: 7, school: "Vidya Niketan", city: "Patna", plan: "Paid", price: 9999, status: "Grace Period", renewalDate: "Mar 12, 2026", paymentMethod: "UPI", lastPayment: "Feb 12, 2026" },
+  { id: 8, school: "Crescent School", city: "Hyderabad", plan: "Trial", price: 0, status: "Active", renewalDate: "Apr 14, 2026", paymentMethod: "-", lastPayment: "-" },
 ];
 
 export default function SubscriptionsPage() {
   const [subs, setSubs] = useState<Subscription[]>(initialSubs);
   const [showChangePlan, setShowChangePlan] = useState<Subscription | null>(null);
-  const [newPlan, setNewPlan] = useState<"Basic" | "Pro" | "Enterprise">("Pro");
+  const [newPlan, setNewPlan] = useState<"Trial" | "Paid">("Paid");
   const [filter, setFilter] = useState<"All" | "Active" | "Expired" | "Grace Period">("All");
 
   const mrr = subs.filter(s => s.status === "Active" || s.status === "Grace Period").reduce((a, b) => a + b.price, 0);
@@ -33,7 +33,7 @@ export default function SubscriptionsPage() {
 
   const handleChangePlan = () => {
     if (showChangePlan) {
-      const prices = { Basic: 4999, Pro: 9999, Enterprise: 19999 };
+      const prices = { Trial: 0, Paid: 9999 };
       setSubs(subs.map(s => s.id === showChangePlan.id ? { ...s, plan: newPlan, price: prices[newPlan] } : s));
       setShowChangePlan(null);
     }
@@ -56,11 +56,10 @@ export default function SubscriptionsPage() {
               <div style={{ fontSize: '13px', color: 'var(--text-meta)', marginBottom: '16px' }}>
                 Current plan: <strong style={{ color: '#1E40AF' }}>{showChangePlan.plan}</strong> (₹{showChangePlan.price.toLocaleString()}/mo)
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 {([
-                  { name: "Basic" as const, price: 4999, color: "#3B82F6" },
-                  { name: "Pro" as const, price: 9999, color: "#1E40AF" },
-                  { name: "Enterprise" as const, price: 19999, color: "#059669" },
+                  { name: "Trial" as const, price: 0, color: "#059669" },
+                  { name: "Paid" as const, price: 9999, color: "#1E40AF" },
                 ]).map(p => (
                   <div key={p.name} onClick={() => setNewPlan(p.name)} style={{
                     padding: '16px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
@@ -116,11 +115,10 @@ export default function SubscriptionsPage() {
         </div>
 
         {/* Plan Breakdown */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '24px' }}>
           {[
-            { name: "Basic", price: "₹4,999/mo", count: subs.filter(s => s.plan === 'Basic').length, color: "#3B82F6" },
-            { name: "Pro", price: "₹9,999/mo", count: subs.filter(s => s.plan === 'Pro').length, color: "#1E40AF" },
-            { name: "Enterprise", price: "₹19,999/mo", count: subs.filter(s => s.plan === 'Enterprise').length, color: "#059669" },
+            { name: "Trial", price: "Free for 7 Days", count: subs.filter(s => s.plan === 'Trial').length, color: "#059669" },
+            { name: "Paid Plan", price: "Custom Pricing", count: subs.filter(s => s.plan === 'Paid').length, color: "#1E40AF" },
           ].map(p => (
             <div key={p.name} className="card" style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
