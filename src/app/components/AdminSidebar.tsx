@@ -10,6 +10,7 @@ interface AdminSidebarProps {
     | "teachers"
     | "students"
     | "classes"
+    | "teacher-assignment"
     | "schedule"
     | "exams"
     | "approvals"
@@ -146,6 +147,14 @@ export default function AdminSidebar({ activePage }: AdminSidebarProps) {
               <line x1="12" y1="17" x2="12" y2="21" />
             </svg>
             Classes
+          </Link>
+          <Link href="/admin/teacher-assignment" className={`nav-item${activePage === "teacher-assignment" ? " active admin-active" : ""}`} onClick={closeMobileSidebar}>
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+            </svg>
+            Teacher Assignment
           </Link>
           <Link href="/admin/schedule" className={`nav-item${activePage === "schedule" ? " active admin-active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">

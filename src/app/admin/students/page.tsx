@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
-import { useAdminContext, Student } from "../../../context/AdminContext";
+import { useAdminContext } from "../../../context/AdminContext";
 
 const gradeOptions = ["All", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
 
 export default function StudentManagement() {
-  const { students, currentAcademicYear, addStudent, updateStudent } = useAdminContext();
+  const { students, currentAcademicYear, addStudent } = useAdminContext();
   const [search, setSearch] = useState("");
   const [gradeFilter, setGradeFilter] = useState("All");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -192,7 +192,6 @@ export default function StudentManagement() {
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Admission No</th>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Parent</th>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Fee Status</th>
-                  <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Result</th>
                   <th style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-meta)', textTransform: 'uppercase' }}>Actions</th>
                 </tr>
               </thead>
@@ -218,16 +217,6 @@ export default function StudentManagement() {
                       </td>
                       <td style={{ padding: '16px 20px' }}>
                         <span style={{ fontSize: '11px', fontWeight: 700, color: fStyle.color, background: fStyle.bg, padding: '4px 10px', borderRadius: '6px' }}>{s.feeStatus}</span>
-                      </td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <select 
-                          value={s.academicStatus} 
-                          onChange={e => updateStudent(s.id, { academicStatus: e.target.value as "Pass" | "Fail" })}
-                          style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px', background: s.academicStatus === "Fail" ? "#FEE2E2" : "#DCFCE7", color: s.academicStatus === "Fail" ? "var(--red)" : "var(--green-dark)", outline: 'none', cursor: 'pointer', fontWeight: 600 }}
-                        >
-                          <option value="Pass">Pass</option>
-                          <option value="Fail">Fail</option>
-                        </select>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
                         <div style={{ display: 'flex', gap: '6px' }}>

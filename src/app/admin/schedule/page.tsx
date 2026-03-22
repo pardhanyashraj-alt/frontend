@@ -47,7 +47,7 @@ const emptyForm = {
 };
 
 export default function AdminSchedulePage() {
-  const { classes, teachers, students } = useAdminContext();
+  const { classes, teachers, students, teacherAssignments } = useAdminContext();
   const { schedules, addSchedule, updateSchedule, deleteSchedule } =
     useSchedule();
 
@@ -80,12 +80,11 @@ export default function AdminSchedulePage() {
 
   const subjectSuggestions = useMemo(() => {
     const set = new Set<string>();
-    classes.forEach((c) =>
-      c.assignments.forEach((a) => set.add(a.subject))
-    );
+    classes.forEach((c) => c.subjects.forEach((s) => set.add(s)));
+    teacherAssignments.forEach((a) => set.add(a.subject));
     schedules.forEach((s) => set.add(s.subject));
     return Array.from(set).sort();
-  }, [classes, schedules]);
+  }, [classes, schedules, teacherAssignments]);
 
   const filteredGrid = useMemo(() => {
     return schedules.filter((s) => {
