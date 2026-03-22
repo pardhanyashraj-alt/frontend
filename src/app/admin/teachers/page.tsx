@@ -29,7 +29,7 @@ export default function TeacherManagement() {
   const [newDesignation, setNewDesignation] = useState("");
   const [salaryMonth, setSalaryMonth] = useState("March 2026");
 
-  const [newTeacher, setNewTeacher] = useState({ firstName: "", lastName: "", dob: "", designation: "Teacher", salary: "", phone: "", email: "" });
+  const [newTeacher, setNewTeacher] = useState({ firstName: "", lastName: "", dob: "", designation: "Teacher", salary: "", phone: "", email: "", joinDate: "" });
 
   const filtered = teachers.filter(t => t.name.toLowerCase().includes(search.toLowerCase()));
   const activeCount = teachers.filter(t => t.status === "active").length;
@@ -42,12 +42,14 @@ export default function TeacherManagement() {
     setTeachers([...teachers, {
       id: Date.now(), name: fullName, firstName: newTeacher.firstName, lastName: newTeacher.lastName, dob: newTeacher.dob, initials,
       designation: newTeacher.designation, salary: parseInt(newTeacher.salary) || 0,
-      joinDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      joinDate: newTeacher.joinDate 
+        ? new Date(newTeacher.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) 
+        : new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
       phone: newTeacher.phone, email: newTeacher.email, status: "active",
       color: colors[Math.floor(Math.random() * colors.length)],
     }]);
     setShowAddModal(false);
-    setNewTeacher({ firstName: "", lastName: "", dob: "", designation: "Teacher", salary: "", phone: "", email: "" });
+    setNewTeacher({ firstName: "", lastName: "", dob: "", designation: "Teacher", salary: "", phone: "", email: "", joinDate: "" });
   };
 
   const handlePromote = () => {
@@ -105,9 +107,15 @@ export default function TeacherManagement() {
                   <input className="form-input" placeholder="+91 XXXXX XXXXX" value={newTeacher.phone} onChange={e => setNewTeacher({...newTeacher, phone: e.target.value})} />
                 </div>
               </div>
-              <div className="form-group" style={{ marginTop: '16px' }}>
-                <label className="form-label">Email</label>
-                <input className="form-input" type="email" placeholder="teacher@eduflow.edu" value={newTeacher.email} onChange={e => setNewTeacher({...newTeacher, email: e.target.value})} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label">Joining Date</label>
+                  <input className="form-input" type="date" value={newTeacher.joinDate} onChange={e => setNewTeacher({...newTeacher, joinDate: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Email</label>
+                  <input className="form-input" type="email" placeholder="teacher@eduflow.edu" value={newTeacher.email} onChange={e => setNewTeacher({...newTeacher, email: e.target.value})} />
+                </div>
               </div>
             </div>
             <div className="modal-footer">

@@ -4,7 +4,20 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 interface AdminSidebarProps {
-  activePage: "dashboard" | "institution" | "teachers" | "students" | "classes" | "exams" | "approvals" | "access" | "finance" | "complaints" | "settings";
+  activePage:
+    | "dashboard"
+    | "institution"
+    | "teachers"
+    | "students"
+    | "classes"
+    | "teacher-assignment"
+    | "schedule"
+    | "exams"
+    | "approvals"
+    | "access"
+    | "finance"
+    | "complaints"
+    | "settings";
 }
 
 export default function AdminSidebar({ activePage }: AdminSidebarProps) {
@@ -134,6 +147,24 @@ export default function AdminSidebar({ activePage }: AdminSidebarProps) {
               <line x1="12" y1="17" x2="12" y2="21" />
             </svg>
             Classes
+          </Link>
+          <Link href="/admin/teacher-assignment" className={`nav-item${activePage === "teacher-assignment" ? " active admin-active" : ""}`} onClick={closeMobileSidebar}>
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+            </svg>
+            Teacher Assignment
+          </Link>
+          <Link href="/admin/schedule" className={`nav-item${activePage === "schedule" ? " active admin-active" : ""}`} onClick={closeMobileSidebar}>
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+              <circle cx="12" cy="15" r="1" fill="currentColor" stroke="none" />
+            </svg>
+            Schedule
           </Link>
           <Link href="/admin/approvals" className={`nav-item${activePage === "approvals" ? " active admin-active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">

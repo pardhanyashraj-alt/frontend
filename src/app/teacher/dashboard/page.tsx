@@ -18,37 +18,9 @@ const initialStudents = [
   { id: 3, initials: "SM", name: "Shreya Mishra", score: "92%", color: "var(--purple)" },
 ];
 
-const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
 export default function Home() {
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showAddClassModal, setShowAddClassModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
-  // New form states
-  const [subject, setSubject] = useState("");
-  const [standard, setStandard] = useState("");
-  const [schedule, setSchedule] = useState<{ day: string; time: string }[]>([]);
-  const [activeDay, setActiveDay] = useState<string | null>(null);
-  const [tempTime, setTempTime] = useState("09:00");
-
-  const addDayToSchedule = () => {
-    if (activeDay) {
-      // Format time to AM/PM for display
-      const [hours, minutes] = tempTime.split(':');
-      const h = parseInt(hours);
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      const displayHours = h % 12 || 12;
-      const timeStr = `${displayHours}:${minutes} ${ampm}`;
-
-      setSchedule([...schedule, { day: activeDay, time: timeStr }]);
-      setActiveDay(null);
-    }
-  };
-
-  const removeDayFromSchedule = (index: number) => {
-    setSchedule(schedule.filter((_, i) => i !== index));
-  };
 
   const filteredClasses = useMemo(() => {
     return initialClasses.filter(c => 
@@ -102,98 +74,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── ADD CLASS MODAL ──────────────────────────────────── */}
-      {showAddClassModal && (
-        <div className="modal-overlay" onClick={() => setShowAddClassModal(false)}>
-          <div className="modal-content" style={{ maxWidth: '550px' }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="card-title">Create New Class</div>
-              <button className="icon-btn" onClick={() => setShowAddClassModal(false)}>
-                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">Subject Name</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="e.g. Advanced Mathematics" 
-                  value={subject}
-                  onChange={e => setSubject(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Standard (Grade)</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="e.g. Grade 11" 
-                  value={standard}
-                  onChange={e => setStandard(e.target.value)}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label className="form-label">Class Schedule</label>
-                <div className="day-picker">
-                  {daysOfWeek.map(day => (
-                    <button 
-                      key={day}
-                      className={`day-chip ${activeDay === day ? 'active' : ''} ${schedule.some(s => s.day === day) ? 'active' : ''}`}
-                      onClick={() => setActiveDay(day)}
-                    >
-                      {day.substring(0, 3)}
-                    </button>
-                  ))}
-                </div>
-
-                {activeDay && (
-                  <div className="time-select-popup">
-                    <div className="card-subtitle" style={{ color: 'var(--text-primary)', marginBottom: '4px' }}>
-                      Select time for <strong>{activeDay}</strong>
-                    </div>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <input 
-                        type="time" 
-                        className="form-input" 
-                        style={{ width: 'auto' }}
-                        value={tempTime}
-                        onChange={e => setTempTime(e.target.value)}
-                      />
-                      <button className="btn-primary" style={{ padding: '8px 16px', fontSize: '13px' }} onClick={addDayToSchedule}>
-                        Add to Schedule
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="schedule-list">
-                  {schedule.map((slot, idx) => (
-                    <div className="schedule-tag" key={idx}>
-                      <div className="schedule-tag-info">
-                        {slot.day} <span className="schedule-tag-time">at {slot.time}</span>
-                      </div>
-                      <div className="remove-schedule" onClick={() => removeDayFromSchedule(idx)}>
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                          <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn-outline" onClick={() => setShowAddClassModal(false)}>Cancel</button>
-              <button className="btn-primary" onClick={() => setShowAddClassModal(false)}>Create Class</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ── MAIN ──────────────────────────────────────────────── */}
       <main className="main">
 
@@ -223,13 +103,6 @@ export default function Home() {
               </svg>
               <div className="notif-dot"></div>
             </div>
-            <button className="btn-primary" onClick={() => setShowAddClassModal(true)}>
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Add Class
-            </button>
           </div>
         </div>
  
