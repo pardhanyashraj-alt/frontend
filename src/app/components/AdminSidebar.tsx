@@ -111,7 +111,6 @@ export default function AdminSidebar({ activePage }: AdminSidebarProps) {
               <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
             </svg>
             Teachers
-            <span className="nav-badge" style={{ background: 'var(--purple)' }}>24</span>
           </Link>
           <Link href="/admin/students" className={`nav-item${activePage === "students" ? " active admin-active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -119,7 +118,6 @@ export default function AdminSidebar({ activePage }: AdminSidebarProps) {
               <path d="M6 12v5c3 3 9 3 12 0v-5" />
             </svg>
             Students
-            <span className="nav-badge" style={{ background: 'var(--purple)' }}>1200</span>
           </Link>
           <Link href="/admin/access" className={`nav-item${activePage === "access" ? " active admin-active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -172,7 +170,6 @@ export default function AdminSidebar({ activePage }: AdminSidebarProps) {
               <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
             Approvals
-            <span className="nav-badge" style={{ background: 'var(--orange)' }}>7</span>
           </Link>
         </div>
 

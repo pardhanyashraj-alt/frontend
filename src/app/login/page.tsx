@@ -1,33 +1,64 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '../../context/AuthContext';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const roleParam = searchParams.get('role');
-  const role = roleParam === 'teacher' ? 'teacher' : roleParam === 'admin' ? 'admin' : 'student';
+  const { login, isAuthenticated, user } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      redirectBasedOnRole(user.role);
+    }
+  }, [isAuthenticated, user]);
+
+  const redirectBasedOnRole = (role: string) => {
+    switch (role) {
+      case 'admin':
+        router.push('/admin/dashboard');
+        break;
+      case 'teacher':
+        router.push('/teacher/dashboard');
+        break;
+      case 'student':
+        router.push('/student/dashboard');
+        break;
+      case 'superadmin':
+        router.push('/superadmin/dashboard');
+        break;
+      default:
+        router.push('/student/dashboard');
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate login network delay
-    setTimeout(() => {
-      setLoading(false);
-      if (role === 'teacher') {
-        router.push('/teacher/dashboard');
-      } else if (role === 'admin') {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/student/dashboard');
+    setError('');
+
+    const result = await login(email, password);
+
+    if (result.success) {
+      if (result.needsPasswordChange) {
+        // TODO: Redirect to password change page
+        console.log('Password change required');
       }
-    }, 800);
+      // Redirect will happen via useEffect when user state updates
+    } else {
+      setError(result.error || 'Login failed');
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -38,17 +69,24 @@ function LoginContent() {
 
       <div style={s.cardWrapper}>
         <div style={s.card}>
-          
+
           {/* Header */}
           <div style={s.header}>
             <div style={s.roleBadge}>
-              {role === 'teacher' ? 'Teacher Portal' : role === 'admin' ? 'Admin Portal' : 'Student Portal'}
+              EduFlow Portal
             </div>
-            <h1 style={s.title}>Login to EduFlow</h1>
-            <p style={s.subtitle}>Welcome back! Please enter your details.</p>
+            <h1 style={s.title}>Welcome Back</h1>
+            <p style={s.subtitle}>Please enter your credentials to continue.</p>
           </div>
 
           <form onSubmit={handleLogin} style={s.form}>
+            {/* Error Message */}
+            {error && (
+              <div style={s.errorMessage}>
+                {error}
+              </div>
+            )}
+
             {/* Email Input */}
             <div style={s.inputGroup}>
               <label style={s.label}>Email Address</label>
@@ -363,5 +401,15 @@ const s: Record<string, React.CSSProperties> = {
     color: '#4F46E5',
     fontWeight: 600,
     textDecoration: 'none',
+  },
+  errorMessage: {
+    background: '#FEE2E2',
+    color: '#DC2626',
+    padding: '12px 16px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: 500,
+    marginBottom: '16px',
+    border: '1px solid #FECACA',
   }
 };

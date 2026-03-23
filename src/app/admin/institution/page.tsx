@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
+import { apiFetch } from "../../lib/api";
 
 export default function AdminInstitution() {
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({
     name: "EduFlow Academy",
     motto: "Empowering minds through innovation and integrity",
@@ -34,8 +36,80 @@ export default function AdminInstitution() {
     { name: "Auditorium", count: "1", icon: "🎭" },
   ]);
 
-  const handleSave = () => {
+  useEffect(() => {
+    const loadProfile = async () => {
+      setLoading(true);
+      try {
+        const res = await apiFetch("/admin/institution");
+        if (res.ok) {
+          const data = await res.json();
+          setProfile({
+            name: data.name ?? "",
+            motto: data.motto ?? "",
+            established: data.established ?? "",
+            board: data.board ?? "",
+            schoolType: data.school_type ?? "",
+            udise: data.udise ?? "",
+            address: data.address ?? "",
+            city: data.city ?? "",
+            state: data.state ?? "",
+            pincode: data.pincode ?? "",
+            phone: data.phone ?? "",
+            email: data.email ?? "",
+            website: data.website ?? "",
+            principalName: data.principal_name ?? "",
+            principalQualification: data.principal_qualification ?? "",
+            trustName: data.trust_name ?? "",
+            trustRegNo: data.trust_reg_no ?? "",
+          });
+
+          if (Array.isArray(data.infrastructure)) {
+            setInfra(data.infrastructure.map((item: any) => ({
+              name: item.name || "",
+              count: item.count || "",
+              icon: item.icon || "",
+            })));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load institution", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
+
+  const handleSave = async () => {
     setIsEditing(false);
+    try {
+      await apiFetch("/admin/institution", {
+        method: "PUT",
+        body: JSON.stringify({
+          name: profile.name,
+          motto: profile.motto,
+          established: profile.established,
+          board: profile.board,
+          school_type: profile.schoolType,
+          udise: profile.udise,
+          address: profile.address,
+          city: profile.city,
+          state: profile.state,
+          pincode: profile.pincode,
+          phone: profile.phone,
+          email: profile.email,
+          website: profile.website,
+          principal_name: profile.principalName,
+          principal_qualification: profile.principalQualification,
+          trust_name: profile.trustName,
+          trust_reg_no: profile.trustRegNo,
+          infrastructure: infra,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to save institution profile", err);
+    }
   };
 
   return (

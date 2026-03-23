@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { ScheduleProvider } from "../context/ScheduleContext";
+import { AuthProvider } from "../context/AuthContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,7 +33,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: themeInit }}
         />
         <ThemeProvider>
-          <ScheduleProvider>{children}</ScheduleProvider>
+          <AuthProvider>
+            <ScheduleProvider>{children}</ScheduleProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

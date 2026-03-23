@@ -82,7 +82,7 @@ export async function apiFetch(
       // Refresh failed — force re-login
       if (typeof window !== "undefined") {
         clearTokens();
-        window.location.href = "/superadmin/login";
+        window.location.href = "/login";
       }
     }
   }
