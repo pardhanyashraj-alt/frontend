@@ -1,156 +1,389 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import StudentSidebar from "../../components/StudentSidebar";
-import { apiFetch } from "../../lib/api";
+import { mockAssignments } from "../../data/mockData";
 
-interface StudentClass {
-  class_id: string;
-  section: string;
-  grade_level: number;
-  school_name: string;
-  enrolled_on: string;
-}
+// ─── QUIZ DATA ─────────────────────────────────────────────────────────────
+const mockQuizQuestions = [
+  {
+    id: 1,
+    question: "What is the result of 2x + 5 = 15?",
+    options: ["x = 5", "x = 10", "x = 7.5", "x = 2.5"],
+    correct: 0,
+  },
+  {
+    id: 2,
+    question: "If a = 5 and b = 3, what is (a + b)²?",
+    options: ["16", "64", "25", "34"],
+    correct: 1,
+  },
+  {
+    id: 3,
+    question: "Simplify: 3(x - 2) + 4x",
+    options: ["7x - 2", "7x - 6", "x - 6", "12x - 6"],
+    correct: 1,
+  },
+];
 
-interface SubjectInfo {
-  class_id: string;
-  subjects: string[];
-}
+// ─── PUBLISHED CONTENT ─────────────────────────────────────────────────────
+const mockPublished = [
+  { id: 'p1', title: 'Calculus Basics', chapter: 'Chapter 1', book: 'Mathematics Part 1', type: 'Summary', date: '2024-03-15' },
+  { id: 'p2', title: 'Algebra Review', chapter: 'Chapter 2', book: 'Mathematics Part 1', type: 'Quiz', date: '2024-03-18' },
+  { id: 'p3', title: 'Geometry Proofs', chapter: 'Chapter 3', book: 'Mathematics Part 2', type: 'Notes', date: '2024-03-20' },
+];
 
-export default function MyClasses() {
-  const [studentClass, setStudentClass] = useState<StudentClass | null>(null);
-  const [subjects, setSubjects] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+// ─── STUDENT SUBJECTS ──────────────────────────────────────────────────────
+const mockStudentSubjects = [
+  { id: "sub-1", name: "Mathematics", class: "Grade 10-A", teacher: "Mr. David Wilson", color: "bg-indigo-600", icon: "📐" },
+  { id: "sub-2", name: "Science", class: "Grade 10-A", teacher: "Mrs. Sunita Gupta", color: "bg-emerald-600", icon: "🧬" },
+  { id: "sub-3", name: "English", class: "Grade 10-A", teacher: "Ms. Rita Sharma", color: "bg-blue-600", icon: "📚" },
+  { id: "sub-4", name: "Social Studies", class: "Grade 10-A", teacher: "Ms. Priya Mehta", color: "bg-orange-600", icon: "🌍" },
+];
 
-  useEffect(() => {
-    const loadClassData = async () => {
-      try {
-        // First get dashboard data to get the enrolled class
-        const dashboardRes = await apiFetch('/student/dashboard');
-        if (dashboardRes.ok) {
-          const dashboardData = await dashboardRes.json();
-          setStudentClass(dashboardData.class);
+export default function StudentClassesPage() {
+  const [selectedSubject, setSelectedSubject] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<"content" | "assignments" | "quiz">("content");
+  const [viewingContent, setViewingContent] = useState<any>(null);
+  const [quizStep, setQuizStep] = useState(0);
+  const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [toast, setToast] = useState("");
 
-          // Then get subjects for this class
-          const subjectsRes = await apiFetch(`/student/classes/${dashboardData.class.class_id}/subjects`);
-          if (subjectsRes.ok) {
-            const subjectsData: SubjectInfo = await subjectsRes.json();
-            setSubjects(subjectsData.subjects);
-          }
-        }
-      } catch (err) {
-        console.error('Error loading class data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 4000);
+  };
 
-    loadClassData();
-  }, []);
+  const handleQuizAnswer = (optionIdx: number) => {
+    const newAnswers = [...quizAnswers];
+    newAnswers[quizStep] = optionIdx;
+    setQuizAnswers(newAnswers);
+  };
 
-  if (loading) {
-    return (
-      <>
-        <StudentSidebar activePage="classes" />
-        <main className="main" style={{ padding: 24 }}>
-          <p>Loading class information...</p>
-        </main>
-      </>
-    );
-  }
+  const handleQuizNext = () => {
+    if (quizStep < mockQuizQuestions.length - 1) {
+      setQuizStep(prev => prev + 1);
+    } else {
+      setQuizSubmitted(true);
+      showToast("Quiz submitted successfully! 🎯");
+    }
+  };
 
-  if (!studentClass) {
-    return (
-      <>
-        <StudentSidebar activePage="classes" />
-        <main className="main" style={{ padding: 24 }}>
-          <p>No class enrollment found.</p>
-        </main>
-      </>
-    );
-  }
+  const calculateScore = () => {
+    let score = 0;
+    mockQuizQuestions.forEach((q, idx) => {
+      if (quizAnswers[idx] === q.correct) score++;
+    });
+    return score;
+  };
 
   return (
     <>
       <StudentSidebar activePage="classes" />
 
-      <main className="main">
-        <div className="topbar">
-          <div className="topbar-left">
-            <div className="greeting">Study hard 👋</div>
-            <h1>My Class</h1>
-          </div>
-          <div className="topbar-right">
-            <div className="search-box">
-              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#9CA3AF" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input type="text" placeholder="Search subjects…" />
-            </div>
-          </div>
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: "fixed", bottom: 32, right: 32, zIndex: 9999, background: "#059669", color: "white", padding: "14px 22px", borderRadius: 14, fontWeight: 600, fontSize: 14, boxShadow: "0 8px 30px rgba(5,150,105,0.35)", display: "flex", alignItems: "center", gap: 10 }} className="animate-in slide-in-from-bottom-5">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+          {toast}
         </div>
+      )}
 
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <div className="card-title">Enrolled Class</div>
-              <div className="card-subtitle">Grade {studentClass.grade_level} - Section {studentClass.section}</div>
-            </div>
-          </div>
-
-          <div className="class-row">
-            <div className="class-icon avatar" style={{ background: 'var(--blue)' }}>
-              G{studentClass.grade_level}
-            </div>
-            <div className="class-info">
-              <div className="class-name">Grade {studentClass.grade_level} - Section {studentClass.section}</div>
-              <div className="class-meta">{studentClass.school_name} · Enrolled {new Date(studentClass.enrolled_on).toLocaleDateString()}</div>
-            </div>
-            <div className="class-info" style={{ flex: 1.5 }}>
-              <div className="class-meta" style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                {subjects.length} Subjects
-              </div>
-              <div className="class-meta">{subjects.join(', ')}</div>
-            </div>
-            <Link href={`/student/classes/${studentClass.class_id}`} className="btn-primary" style={{ padding: '8px 16px', textDecoration: 'none' }}>
-              View Class
-            </Link>
-          </div>
-        </div>
-
-        {subjects.length > 0 && (
-          <div className="card" style={{ marginTop: '24px' }}>
-            <div className="card-header">
+      {/* View Content Modal */}
+      {viewingContent && (
+        <div className="fixed inset-0 z-[1500] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setViewingContent(null)} />
+          <div className="relative w-full max-w-[640px] bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <div>
-                <div className="card-title">Subjects</div>
-                <div className="card-subtitle">Available subjects in your class</div>
+                <h3 className="text-xl font-bold text-slate-800">{viewingContent.title}</h3>
+                <p className="text-[13px] text-slate-400 font-medium">{viewingContent.book} · {viewingContent.chapter}</p>
+              </div>
+              <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all" onClick={() => setViewingContent(null)}>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-8">
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                <div className="p-5 bg-slate-50 border border-slate-100 rounded-2xl">
+                  <h4 className="font-bold text-slate-700 mb-2">Detailed {viewingContent.type}</h4>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    This is a simulated view of generated AI content. In the full version, this would be populated with 
+                    Markdown formatted notes, key takeaways, and relevant diagrams for {viewingContent.chapter} from {viewingContent.book}.
+                  </p>
+                </div>
+                <div className="p-5 bg-indigo-50/30 border border-indigo-100/50 rounded-2xl">
+                  <h4 className="font-black text-indigo-700 text-xs uppercase tracking-widest mb-2">Key Takeaways</h4>
+                  <ul className="list-disc list-inside text-slate-600 text-sm space-y-2">
+                    <li>Fundamental concepts of {viewingContent.title}</li>
+                    <li>Core formulas and derivations</li>
+                    <li>Practical applications and examples</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="mt-8 flex justify-end">
+                <button className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100" onClick={() => setViewingContent(null)}>Close Viewer</button>
               </div>
             </div>
-
-            {subjects.map((subject, index) => {
-              const colors = ['var(--blue)', 'var(--orange)', 'var(--green)', 'var(--purple)', 'var(--red)'];
-              const color = colors[index % colors.length];
-              const initials = subject.substring(0, 2).toUpperCase();
-
-              return (
-                <div className="class-row" key={subject}>
-                  <div className="class-icon avatar" style={{ background: color }}>
-                    {initials}
-                  </div>
-                  <div className="class-info">
-                    <div className="class-name">{subject}</div>
-                    <div className="class-meta">Grade {studentClass.grade_level} · Section {studentClass.section}</div>
-                  </div>
-                  <Link href={`/student/classes/${studentClass.class_id}?subject=${encodeURIComponent(subject)}`} className="btn-outline" style={{ padding: '6px 12px', textDecoration: 'none' }}>
-                    View Content
-                  </Link>
-                </div>
-              );
-            })}
           </div>
-        )}
+        </div>
+      )}
+
+      <main className="main">
+        <div className="p-4 md:p-6 space-y-8 max-w-[1200px] mx-auto">
+          {!selectedSubject ? (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="mb-10 text-center md:text-left">
+                <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2">My <span className="text-indigo-600">Classes</span></h1>
+                <p className="text-slate-500 font-medium">Select a subject to view learning materials, assignments, and quizzes.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-10">
+                {mockStudentSubjects.map((sub) => (
+                  <div key={sub.id} className="group relative bg-white border border-slate-200 rounded-[32px] p-8 shadow-sm hover:shadow-2xl hover:border-indigo-100 transition-all cursor-pointer overflow-hidden"
+                    onClick={() => setSelectedSubject(sub)}>
+                    <div className={`absolute top-0 left-0 w-2 h-full ${sub.color}`} />
+                    <div className="flex flex-col h-full">
+                      <div className="flex justify-between items-start mb-6">
+                        <div className={`w-14 h-14 rounded-2xl ${sub.color.replace('bg-', 'bg-')}/10 text-2xl flex items-center justify-center shadow-inner`}>
+                          {sub.icon}
+                        </div>
+                        <span className="px-3 py-1 bg-slate-50 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-widest">{sub.class}</span>
+                      </div>
+                      
+                      <h3 className="text-2xl font-black text-slate-800 mb-1 group-hover:text-indigo-600 transition-colors">{sub.name}</h3>
+                      <p className="text-sm text-slate-400 font-bold mb-8 flex items-center gap-1.5">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
+                        {sub.teacher}
+                      </p>
+
+                      <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
+                        <span className="text-xs font-black text-indigo-600 uppercase tracking-widest">Enter Class</span>
+                        <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:translate-x-1">
+                          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-8">
+              {/* Header with Back Button */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="flex items-center gap-5">
+                  <button 
+                    onClick={() => setSelectedSubject(null)}
+                    className="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 flex items-center justify-center hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm group"
+                  >
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className="group-hover:-translate-x-1 transition-transform"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+                  </button>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[11px] font-black rounded-lg uppercase tracking-wider">{selectedSubject.class}</span>
+                      <span className="text-slate-300">·</span>
+                      <span className="text-[11px] font-bold text-slate-400">Academic Year 2024-25</span>
+                    </div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">{selectedSubject.name}</h1>
+                  </div>
+                </div>
+                
+                <div className="flex bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200 shadow-sm">
+                  {(["content", "assignments", "quiz"] as const).map(tab => (
+                    <button 
+                      key={tab} 
+                      onClick={() => {
+                        setActiveTab(tab);
+                        if (tab === 'quiz') { setQuizSubmitted(false); setQuizStep(0); setQuizAnswers([]); }
+                      }}
+                      className={`px-5 py-2.5 rounded-xl text-[13px] font-bold transition-all uppercase tracking-wide ${
+                        activeTab === tab 
+                          ? "bg-white text-indigo-700 shadow-sm" 
+                          : "text-slate-500 hover:text-slate-700"
+                      }`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* TAB CONTENT */}
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                {activeTab === "content" && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                      </div>
+                      <h2 className="text-xl font-extrabold text-slate-800">Learning Materials</h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {mockPublished.map(item => (
+                        <div key={item.id} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all group overflow-hidden relative">
+                          <div className="absolute top-0 right-0 p-4 opacity-10 peer-hover:opacity-100 transition-opacity">
+                            <svg width="60" height="60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                          </div>
+                          <div className="flex justify-between items-start mb-4">
+                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                              item.type === 'Summary' ? 'bg-blue-50 text-blue-600' : 
+                              item.type === 'Quiz' ? 'bg-orange-50 text-orange-600' : 'bg-emerald-50 text-emerald-600'
+                            }`}>
+                              {item.type}
+                            </span>
+                            <span className="text-[11px] font-bold text-slate-400">{item.date}</span>
+                          </div>
+                          <h3 className="text-[17px] font-black text-slate-800 mb-1 leading-tight">{item.title}</h3>
+                          <p className="text-[13px] text-slate-500 font-medium mb-6">{item.chapter}</p>
+                          
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => setViewingContent(item)}
+                              className="flex-1 py-1.5 bg-white border border-slate-200 text-slate-600 text-[12px] font-bold rounded-xl hover:bg-slate-50 transition-all hover:border-slate-300"
+                            >
+                              View
+                            </button>
+                            {item.type === 'Quiz' && (
+                              <button 
+                                onClick={() => setActiveTab('quiz')}
+                                className="flex-1 py-1.5 bg-indigo-600 text-white text-[12px] font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100"
+                              >
+                                Attempt
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "assignments" && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" /></svg>
+                      </div>
+                      <h2 className="text-xl font-extrabold text-slate-800">Pending Assignments</h2>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                      <div className="divide-y divide-slate-100">
+                        {mockAssignments.filter(a => a.subject === selectedSubject.name || a.subject === "Mathematics").map(a => (
+                          <div key={a.id} className="p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50/50 transition-colors">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-[16px] font-black text-slate-800">{a.title}</h3>
+                                <span className="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] font-black rounded-md uppercase tracking-tighter">Due soon</span>
+                              </div>
+                              <p className="text-[13px] text-slate-500 font-medium">{a.subject} · Deadline: {a.dueDate}</p>
+                              {a.description && <p className="text-[12px] text-slate-400 italic max-w-xl">&quot;{a.description}&quot;</p>}
+                            </div>
+                            <button 
+                              className="px-6 py-2.5 bg-indigo-600 text-white text-[13px] font-black rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 active:scale-[0.98]"
+                              onClick={() => showToast(`Assignment "${a.title}" submitted successfully!`)}
+                            >
+                              Submit Now
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "quiz" && (
+                  <div className="bg-white border border-slate-200 rounded-3xl p-8 md:p-12 shadow-sm min-h-[500px] flex flex-col items-center justify-center max-w-[800px] mx-auto">
+                    {!quizSubmitted ? (
+                      <div className="w-full space-y-8 animate-in fade-in zoom-in duration-500">
+                        <div className="flex justify-between items-end mb-4">
+                          <div>
+                            <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-lg uppercase tracking-widest mb-2 inline-block">Chapter 3 Quiz</span>
+                            <h2 className="text-2xl font-black text-slate-800">Question {quizStep + 1} of {mockQuizQuestions.length}</h2>
+                          </div>
+                          <div className="text-sm font-bold text-slate-400">Total Score Potential: {mockQuizQuestions.length}</div>
+                        </div>
+                        
+                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-10">
+                          <div className="h-full bg-indigo-600 rounded-full transition-all duration-300" style={{ width: `${((quizStep + 1) / mockQuizQuestions.length) * 100}%` }} />
+                        </div>
+
+                        <p className="text-xl font-extrabold text-slate-700 leading-relaxed mb-8">{mockQuizQuestions[quizStep].question}</p>
+
+                        <div className="grid grid-cols-1 gap-4">
+                          {mockQuizQuestions[quizStep].options.map((option, idx) => (
+                            <button 
+                              key={idx} 
+                              onClick={() => handleQuizAnswer(idx)}
+                              className={`w-full p-5 text-left rounded-2xl border-2 transition-all font-bold ${
+                                quizAnswers[quizStep] === idx 
+                                  ? "bg-indigo-50 border-indigo-600 text-indigo-700 ring-4 ring-indigo-500/10" 
+                                  : "bg-white border-slate-100 text-slate-600 hover:border-slate-300"
+                              }`}
+                            >
+                              <div className="flex items-center gap-4">
+                                <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${
+                                  quizAnswers[quizStep] === idx ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400"
+                                }`}>{String.fromCharCode(65 + idx)}</span>
+                                {option}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="flex justify-between pt-8 border-t border-slate-50">
+                          <button 
+                            disabled={quizStep === 0}
+                            onClick={() => setQuizStep(prev => prev - 1)}
+                            className="px-6 py-3 font-bold text-slate-400 hover:text-slate-700 disabled:opacity-30 transition-all uppercase tracking-widest text-[12px]"
+                          >
+                            Previous
+                          </button>
+                          <button 
+                            disabled={quizAnswers[quizStep] === undefined}
+                            onClick={handleQuizNext}
+                            className="px-10 py-3 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 active:scale-[0.98]"
+                          >
+                            {quizStep === mockQuizQuestions.length - 1 ? "Submit Quiz" : "Next Question"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center text-center animate-in zoom-in slide-in-from-bottom-5 duration-700">
+                        <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-inner">
+                          <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                        </div>
+                        <h2 className="text-3xl font-black text-slate-900 mb-2">Quiz Completed!</h2>
+                        <p className="text-slate-500 font-medium mb-10 max-w-sm">Great effort! You've successfully finished the interactive quiz assessment for Chapter 3.</p>
+                        
+                        <div className="grid grid-cols-2 gap-4 w-full max-w-md mb-10">
+                          <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                            <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Your Score</div>
+                            <div className="text-3xl font-black text-emerald-600">{calculateScore()}/{mockQuizQuestions.length}</div>
+                          </div>
+                          <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                            <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Percentage</div>
+                            <div className="text-3xl font-black text-indigo-600">{Math.round((calculateScore() / mockQuizQuestions.length) * 100)}%</div>
+                          </div>
+                        </div>
+
+                        <button 
+                          onClick={() => setActiveTab('content')}
+                          className="px-12 py-3.5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-[0.98]"
+                        >
+                          Back to Materials
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </main>
     </>
   );

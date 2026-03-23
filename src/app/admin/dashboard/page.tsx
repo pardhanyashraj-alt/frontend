@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import AdminSidebar from "../../components/AdminSidebar";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import { apiFetch } from "../../lib/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────

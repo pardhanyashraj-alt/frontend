@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function SuperAdminLogin() {
   const router = useRouter();
@@ -14,7 +14,7 @@ export default function SuperAdminLogin() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'sudo_admin') {
+    if (isAuthenticated && user?.role === 'superadmin') {
       router.push('/superadmin/dashboard');
     }
   }, [isAuthenticated, user, router]);

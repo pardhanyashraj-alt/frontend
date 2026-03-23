@@ -22,6 +22,13 @@ interface AuthContextType {
   isAuthenticated: boolean;
 }
 
+const mockUsers: Record<string, User> = {
+  "admin@gmail.com": { user_id: "u1", email: "admin@gmail.com", first_name: "Admin", last_name: "User", role: "admin", school_id: "s1", is_active: true, is_password_changed: true, created_at: "2026-01-01" },
+  "teacher@gmail.com": { user_id: "u2", email: "teacher@gmail.com", first_name: "Rita", last_name: "Sharma", role: "teacher", school_id: "s1", is_active: true, is_password_changed: true, created_at: "2026-01-01" },
+  "student@gmail.com": { user_id: "u3", email: "student@gmail.com", first_name: "Priya", last_name: "Sharma", role: "student", school_id: "s1", is_active: true, is_password_changed: true, created_at: "2026-01-01" },
+  "owner@eduflow.com": { user_id: "u4", email: "owner@eduflow.com", first_name: "Platform", last_name: "Owner", role: "superadmin", school_id: "s1", is_active: true, is_password_changed: true, created_at: "2026-01-01" }
+};
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -31,28 +38,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check if user is already logged in on mount
   useEffect(() => {
     const checkAuth = async () => {
-      const accessToken = localStorage.getItem('access_token');
-      if (accessToken) {
-        try {
-          const response = await fetch('http://127.0.0.1:8000/auth/me', {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-            },
-          });
-
-          if (response.ok) {
-            const userData = await response.json();
-            setUser(userData);
-          } else {
-            // Token is invalid, clear it
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-          }
-        } catch (error) {
-          console.error('Error checking auth:', error);
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-        }
+      // Use our static mock logic
+      const savedEmail = localStorage.getItem('mock_user_email');
+      if (savedEmail && mockUsers[savedEmail]) {
+        // Simulate a tiny network delay for realism
+        await new Promise(resolve => setTimeout(resolve, 300));
+        setUser(mockUsers[savedEmail]);
+      } else {
+        localStorage.removeItem('mock_user_email');
       }
       setIsLoading(false);
     };
@@ -61,42 +54,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+
     try {
-      const response = await fetch('http://127.0.0.1:8000/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Store tokens
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('refresh_token', data.refresh_token);
-
-        // Set user data
-        setUser(data.user);
+      const mockUser = mockUsers[email.toLowerCase()];
+      
+      // We accept any password for the mock except empty
+      if (mockUser && password.length >= 6) {
+        // Store persistent mock token
+        localStorage.setItem('mock_user_email', email.toLowerCase());
+        setUser(mockUser);
 
         return {
           success: true,
-          needsPasswordChange: !data.is_password_changed
+          needsPasswordChange: false
         };
       } else {
-        let errorMessage = 'Login failed';
-        if (response.status === 401) {
-          errorMessage = 'Invalid email or password';
-        } else if (response.status === 403) {
-          errorMessage = 'Account has been deactivated';
-        } else if (data.detail) {
-          errorMessage = data.detail;
-        }
-
         return {
           success: false,
-          error: errorMessage
+          error: 'Invalid email or password'
         };
       }
     } catch (error) {
@@ -109,8 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('mock_user_email');
     setUser(null);
   };
 

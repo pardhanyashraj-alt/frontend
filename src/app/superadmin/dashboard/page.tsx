@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import SuperAdminSidebar from "../../components/SuperAdminSidebar";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import { apiFetch } from "../../lib/api";
 
 // Same helper used in SchoolsPage — coerces DB boolean serialisation edge-cases

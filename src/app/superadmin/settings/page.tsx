@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import SuperAdminSidebar from "../../components/SuperAdminSidebar";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import { apiFetch } from "../../lib/api";
 
 type TabType = "profile" | "security";
 
 export default function SuperAdminSettings() {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("profile");
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -85,7 +85,7 @@ export default function SuperAdminSettings() {
                 </div>
                 <div className="form-group">
                   <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>Phone Number</label>
-                  <input className="form-input" style={{ width: '100%', background: '#F8FAFC' }} value={user?.phone_number || ''} readOnly />
+                  <input className="form-input" style={{ width: '100%', background: '#F8FAFC' }} value={(user as any)?.phone_number || ''} readOnly />
                 </div>
               </div>
               <div style={{ marginTop: '20px', fontSize: '12px', color: 'var(--text-meta)' }}>
