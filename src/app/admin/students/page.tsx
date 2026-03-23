@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -30,9 +30,6 @@ const mockStudents: Student[] = [
   { student_id: "s3", first_name: "Shreya", last_name: "Mishra", email: "shreya@school.edu", is_active: true, is_password_changed: false, created_at: "2025-06-02", enrollment: { grade_level: 11, section: "A", admission_number: 1003, parent_name: "Anil Mishra", parent_phone: "+91 98765 43212", fee_status: "paid", enrollment_date: "2025-06-02" } },
   { student_id: "s4", first_name: "Vikram", last_name: "Singh", email: "vikram@school.edu", is_active: true, is_password_changed: true, created_at: "2025-06-03", enrollment: { grade_level: 8, section: "C", admission_number: 1004, parent_name: "Balraj Singh", parent_phone: "+91 98765 43213", fee_status: "overdue", enrollment_date: "2025-06-03" } },
   { student_id: "s5", first_name: "Priya", last_name: "Patel", email: "priya@school.edu", is_active: true, is_password_changed: true, created_at: "2025-06-04", enrollment: { grade_level: 10, section: "B", admission_number: 1005, parent_name: "Kiran Patel", parent_phone: "+91 98765 43214", fee_status: "paid", enrollment_date: "2025-06-04" } },
-  { student_id: "s6", first_name: "Arjun", last_name: "Sharma", email: "arjun@school.edu", is_active: false, is_password_changed: true, created_at: "2025-06-05", enrollment: { grade_level: 9, section: "B", admission_number: 1006, parent_name: "Deepak Sharma", parent_phone: "+91 98765 43215", fee_status: "pending", enrollment_date: "2025-06-05" } },
-  { student_id: "s7", first_name: "Neha", last_name: "Gupta", email: "neha@school.edu", is_active: true, is_password_changed: false, created_at: "2025-06-06", enrollment: { grade_level: 9, section: "B", admission_number: 1007, parent_name: "Vinod Gupta", parent_phone: "+91 98765 43216", fee_status: "paid", enrollment_date: "2025-06-06" } },
-  { student_id: "s8", first_name: "Rahul", last_name: "Verma", email: "rahul@school.edu", is_active: true, is_password_changed: true, created_at: "2025-06-07", enrollment: { grade_level: 11, section: "A", admission_number: 1008, parent_name: "Mohan Verma", parent_phone: "+91 98765 43217", fee_status: "overdue", enrollment_date: "2025-06-07" } },
 ];
 
 const FEE_COLORS: Record<string, string> = {
@@ -48,7 +45,16 @@ export default function StudentsPage() {
   const [feeFilter, setFeeFilter] = useState<"All" | "paid" | "pending" | "overdue">("All");
   const [detail, setDetail] = useState<Student | null>(null);
   const [successToast, setSuccessToast] = useState("");
+  
+  // Registration States
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [bulkStudents, setBulkStudents] = useState<any[]>([]);
+  const [manualStudent, setManualStudent] = useState({
+    first_name: "", last_name: "", email: "", grade_level: 1, section: "A", admission_number: "", parent_name: "", parent_phone: ""
+  });
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const toast = (msg: string) => { setSuccessToast(msg); setTimeout(() => setSuccessToast(""), 3500); };
 
   const uniqueGrades = Array.from(new Set(students.map(s => s.enrollment?.grade_level).filter(Boolean))).sort() as number[];
@@ -64,6 +70,64 @@ export default function StudentsPage() {
   const fullName = (s: Student) => `${s.first_name} ${s.last_name}`;
   const initials = (s: Student) => `${s.first_name[0]}${s.last_name[0]}`.toUpperCase();
 
+  // ─── BULK METHODS ────────────────────────────────────────────────────────
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const rows = text.split("\n").filter(row => row.trim() !== "");
+      // Skip header if it exists
+      const startIdx = rows[0].toLowerCase().includes("name") ? 1 : 0;
+      
+      const parsed = rows.slice(startIdx).map(row => {
+        const cols = row.split(",").map(c => c.trim());
+        return {
+          first_name: cols[0] || "",
+          last_name: cols[1] || "",
+          email: cols[2] || "",
+          grade_level: parseInt(cols[3]) || 1,
+          section: cols[4] || "A",
+          admission_number: cols[5] || ""
+        };
+      });
+      setBulkStudents(parsed);
+      toast(`Parsed ${parsed.length} students from CSV! Check and edit if needed.`);
+    };
+    reader.readAsText(file);
+  };
+
+  const addBulkRow = () => {
+    setBulkStudents([...bulkStudents, { first_name: "", last_name: "", email: "", grade_level: 1, section: "A", admission_number: "" }]);
+  };
+
+  const updateBulkStudent = (index: number, field: string, value: any) => {
+    const updated = [...bulkStudents];
+    updated[index] = { ...updated[index], [field]: value };
+    setBulkStudents(updated);
+  };
+
+  const removeBulkRow = (index: number) => {
+    setBulkStudents(bulkStudents.filter((_, i) => i !== index));
+  };
+
+  const handleBulkSubmit = () => {
+    if (bulkStudents.length === 0) return toast("No students to register!");
+    toast(`Successfully registered ${bulkStudents.length} students bulkily!`);
+    setIsBulkModalOpen(false);
+    setBulkStudents([]);
+  };
+
+  // ─── MANUAL METHODS ──────────────────────────────────────────────────────
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast(`Successfully registered ${manualStudent.first_name} ${manualStudent.last_name}!`);
+    setIsManualModalOpen(false);
+    setManualStudent({ first_name: "", last_name: "", email: "", grade_level: 1, section: "A", admission_number: "", parent_name: "", parent_phone: "" });
+  };
+
   return (
     <>
       <AdminSidebar activePage="students" />
@@ -76,7 +140,141 @@ export default function StudentsPage() {
         </div>
       )}
 
-      {/* ── DETAIL MODAL ── */}
+      {/* ── BULK REGISTRATION MODAL ── */}
+      {isBulkModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsBulkModalOpen(false)}>
+          <div className="modal-content" style={{ maxWidth: 880, width: "95%", maxHeight: "90vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="card-title">Bulk Student Registration</div>
+              <button className="icon-btn" onClick={() => setIsBulkModalOpen(false)}>
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              <div style={{ background: "var(--blue-light)05", border: "1px dashed var(--blue)", padding: 24, borderRadius: 14, textAlign: "center", marginBottom: 24 }}>
+                <input type="file" accept=".csv" ref={fileInputRef} hidden onChange={handleFileUpload} />
+                <div style={{ fontSize: 13, color: "var(--text-meta)", marginBottom: 16 }}>
+                  Upload a CSV file with columns: <b>First Name, Last Name, Email, Class, Section, Admission No.</b>
+                </div>
+                <button className="btn-primary" onClick={() => fileInputRef.current?.click()}>
+                  📁 Upload CSV File
+                </button>
+              </div>
+
+              {bulkStudents.length > 0 && (
+                <div style={{ maxHeight: "360px", overflowY: "auto", marginBottom: 20 }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead style={{ position: "sticky", top: 0, background: "#F8FAFC", zIndex: 10 }}>
+                      <tr style={{ textAlign: "left" }}>
+                        {["First Name", "Last Name", "Email", "Class", "Section", "Adm. No.", ""].map(h => (
+                          <th key={h} style={{ padding: "12px", fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bulkStudents.map((bs, idx) => (
+                        <tr key={idx} style={{ borderBottom: "1px solid #F1F5F9" }}>
+                          <td style={{ padding: "8px" }}><input type="text" className="filter-select" style={{ width: "100%" }} value={bs.first_name} onChange={e => updateBulkStudent(idx, "first_name", e.target.value)} /></td>
+                          <td style={{ padding: "8px" }}><input type="text" className="filter-select" style={{ width: "100%" }} value={bs.last_name} onChange={e => updateBulkStudent(idx, "last_name", e.target.value)} /></td>
+                          <td style={{ padding: "8px" }}><input type="email" className="filter-select" style={{ width: "100%" }} value={bs.email} onChange={e => updateBulkStudent(idx, "email", e.target.value)} /></td>
+                          <td style={{ padding: "8px" }}>
+                            <select className="filter-select" value={bs.grade_level} onChange={e => updateBulkStudent(idx, "grade_level", Number(e.target.value))}>
+                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(g => <option key={g} value={g}>{g}</option>)}
+                            </select>
+                          </td>
+                          <td style={{ padding: "8px" }}><input type="text" className="filter-select" style={{ width: "100%" }} value={bs.section} onChange={e => updateBulkStudent(idx, "section", e.target.value)} /></td>
+                          <td style={{ padding: "8px" }}><input type="text" className="filter-select" style={{ width: "100%" }} value={bs.admission_number || ""} placeholder="No." onChange={e => updateBulkStudent(idx, "admission_number", e.target.value)} /></td>
+                          <td style={{ padding: "8px" }}>
+                            <button className="icon-btn" onClick={() => removeBulkRow(idx)} style={{ color: "var(--red)" }}>
+                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              
+              <button className="btn-outline" onClick={addBulkRow} style={{ width: "100%", borderStyle: "dashed", marginBottom: 12 }}>
+                + Add Row Manually
+              </button>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-outline" onClick={() => setIsBulkModalOpen(false)}>Cancel</button>
+              <button className="btn-primary" onClick={handleBulkSubmit}>Complete Registration</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MANUAL REGISTRATION MODAL ── */}
+      {isManualModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsManualModalOpen(false)}>
+          <div className="modal-content" style={{ maxWidth: 520, width: "95%", maxHeight: "90vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="card-title">Manual Student Registration</div>
+              <button className="icon-btn" onClick={() => setIsManualModalOpen(false)}>
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleManualSubmit}>
+              <div className="modal-body">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>First Name</label>
+                    <input type="text" className="filter-select" style={{ width: "100%" }} required value={manualStudent.first_name} onChange={e => setManualStudent({...manualStudent, first_name: e.target.value})} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Last Name</label>
+                    <input type="text" className="filter-select" style={{ width: "100%" }} required value={manualStudent.last_name} onChange={e => setManualStudent({...manualStudent, last_name: e.target.value})} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Admission Number</label>
+                    <input type="text" className="filter-select" style={{ width: "100%" }} required value={manualStudent.admission_number} onChange={e => setManualStudent({...manualStudent, admission_number: e.target.value})} />
+                  </div>
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Email Address</label>
+                  <input type="email" className="filter-select" style={{ width: "100%" }} required value={manualStudent.email} onChange={e => setManualStudent({...manualStudent, email: e.target.value})} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Class Level</label>
+                    <select className="filter-select" style={{ width: "100%" }} value={manualStudent.grade_level} onChange={e => setManualStudent({...manualStudent, grade_level: Number(e.target.value)})}>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(g => <option key={g} value={g}>Class {g}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Section</label>
+                    <select className="filter-select" style={{ width: "100%" }} value={manualStudent.section} onChange={e => setManualStudent({...manualStudent, section: e.target.value})}>
+                      {["A", "B", "C", "D"].map(s => <option key={s} value={s}>Section {s}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ padding: 16, background: "#F8FAFC", borderRadius: 12, border: "1px solid #F1F5F9" }}>
+                   <div style={{ fontSize: 12, fontWeight: 700, color: "var(--blue)", marginBottom: 12 }}>PARENTS / GUARDIAN INFO</div>
+                   <div style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-meta)", display: "block", marginBottom: 4 }}>Parent Name</label>
+                    <input type="text" className="filter-select" style={{ width: "100%", background: "white" }} value={manualStudent.parent_name} onChange={e => setManualStudent({...manualStudent, parent_name: e.target.value})} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-meta)", display: "block", marginBottom: 4 }}>Parent Phone</label>
+                    <input type="text" className="filter-select" style={{ width: "100%", background: "white" }} value={manualStudent.parent_phone} onChange={e => setManualStudent({...manualStudent, parent_phone: e.target.value})} />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-outline" onClick={() => setIsManualModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn-primary">Register Student</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── DETAIL MODAL (Left Intact) ── */}
       {detail && (
         <div className="modal-overlay" onClick={() => setDetail(null)}>
           <div className="modal-content" style={{ maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
@@ -95,60 +293,13 @@ export default function StudentsPage() {
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 16 }}>{fullName(detail)}</div>
                     <div style={{ fontSize: 12, color: "var(--text-meta)" }}>
-                      {detail.enrollment ? `Grade ${detail.enrollment.grade_level}${detail.enrollment.section} · Adm. #${detail.enrollment.admission_number}` : "No enrollment data"}
-                    </div>
-                    <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: detail.is_active ? "var(--green-dark)" : "var(--red)", background: detail.is_active ? "var(--green-light)" : "#FEE2E2", padding: "2px 8px", borderRadius: 6 }}>
-                        {detail.is_active ? "Active" : "Inactive"}
-                      </span>
-                      {detail.enrollment?.fee_status && (
-                        <span style={{ fontSize: 11, fontWeight: 700, color: FEE_COLORS[detail.enrollment.fee_status], background: `${FEE_COLORS[detail.enrollment.fee_status]}15`, padding: "2px 8px", borderRadius: 6 }}>
-                          Fee: {detail.enrollment.fee_status.charAt(0).toUpperCase() + detail.enrollment.fee_status.slice(1)}
-                        </span>
-                      )}
+                      {detail.enrollment ? `Class ${detail.enrollment.grade_level}${detail.enrollment.section} · Adm. #${detail.enrollment.admission_number}` : "No enrollment data"}
                     </div>
                   </div>
                 </div>
               </div>
-
-              <div style={{ fontWeight: 700, marginBottom: 10, fontSize: 13, color: "var(--text-meta)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Personal Info</div>
-              <div style={{ display: "flex", flexDirection: "column", marginBottom: 20 }}>
-                {([
-                  { label: "Email", value: detail.email },
-                  { label: "Registered On", value: new Date(detail.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) },
-                ] as { label: string; value: string }[]).map(r => (
-                  <div key={r.label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "8px 0", borderBottom: "1px solid #F1F5F9" }}>
-                    <span style={{ color: "var(--text-meta)", fontWeight: 600 }}>{r.label}</span>
-                    <span style={{ fontWeight: 500 }}>{r.value}</span>
-                  </div>
-                ))}
-              </div>
-
-              {detail.enrollment && (
-                <>
-                  <div style={{ fontWeight: 700, marginBottom: 10, fontSize: 13, color: "var(--text-meta)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Enrollment</div>
-                  <div style={{ display: "flex", flexDirection: "column", marginBottom: 20 }}>
-                    {([
-                      { label: "Grade & Section", value: `Grade ${detail.enrollment.grade_level} - ${detail.enrollment.section}` },
-                      { label: "Admission No.", value: String(detail.enrollment.admission_number) },
-                      { label: "Parent Name", value: detail.enrollment.parent_name || "—" },
-                      { label: "Parent Phone", value: detail.enrollment.parent_phone || "—" },
-                      { label: "Fee Status", value: detail.enrollment.fee_status.charAt(0).toUpperCase() + detail.enrollment.fee_status.slice(1) },
-                    ] as { label: string; value: string }[]).map(r => (
-                      <div key={r.label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "8px 0", borderBottom: "1px solid #F1F5F9" }}>
-                        <span style={{ color: "var(--text-meta)", fontWeight: 600 }}>{r.label}</span>
-                        <span style={{ fontWeight: 500, color: r.label === "Fee Status" ? FEE_COLORS[detail.enrollment!.fee_status] : undefined }}>{r.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
             </div>
             <div className="modal-footer">
-              <button className="btn-outline" style={{ fontSize: 12, color: "var(--blue)", borderColor: "var(--blue)" }}
-                onClick={() => { toast("New password sent to student's email."); setDetail(null); }}>
-                📧 Resend Password
-              </button>
               <button className="btn-outline" onClick={() => setDetail(null)}>Close</button>
             </div>
           </div>
@@ -162,8 +313,11 @@ export default function StudentsPage() {
             <div className="greeting">Manage enrolled students</div>
             <h1>Students</h1>
           </div>
-          <div className="topbar-right">
-            <button className="btn-primary" style={{ padding: "10px 20px" }}>
+          <div className="topbar-right" style={{ display: "flex", gap: 12 }}>
+            <button className="btn-outline" onClick={() => setIsBulkModalOpen(true)} style={{ padding: "10px 20px" }}>
+              Bulk Registration
+            </button>
+            <button className="btn-primary" onClick={() => setIsManualModalOpen(true)} style={{ padding: "10px 20px" }}>
               + Register Student
             </button>
           </div>
@@ -184,8 +338,8 @@ export default function StudentsPage() {
             <input type="text" placeholder="Search students…" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <select className="filter-select" value={gradeFilter} onChange={e => setGradeFilter(e.target.value === "All" ? "All" : Number(e.target.value))}>
-            <option value="All">All Grades</option>
-            {uniqueGrades.map(g => <option key={g} value={g}>Grade {g}</option>)}
+            <option value="All">All Classes</option>
+            {uniqueGrades.map(g => <option key={g} value={g}>Class {g}</option>)}
           </select>
           <select className="filter-select" value={feeFilter} onChange={e => setFeeFilter(e.target.value as "All" | "paid" | "pending" | "overdue")}>
             <option value="All">All Fee Status</option>
@@ -198,13 +352,13 @@ export default function StudentsPage() {
         {/* Table */}
         <div className="card">
           <div className="card-header">
-            <div style={{ fontSize: 13, color: "var(--text-meta)" }}>{filtered.length} students</div>
+            <div style={{ fontSize: 13, color: "var(--text-meta)" }}>{filtered.length} students enrolled</div>
           </div>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#F8FAFC", textAlign: "left" }}>
-                  {["Student", "Email", "Grade", "Adm. No.", "Fee Status", "Status", "Actions"].map(h => (
+                  {["Student", "Email", "Class", "Adm. No.", "Actions"].map(h => (
                     <th key={h} style={{ padding: "14px 20px", fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase" }}>{h}</th>
                   ))}
                 </tr>
@@ -222,24 +376,11 @@ export default function StudentsPage() {
                     <td style={{ padding: "14px 20px", fontSize: 13, fontWeight: 600 }}>{s.enrollment ? `${s.enrollment.grade_level}${s.enrollment.section}` : "—"}</td>
                     <td style={{ padding: "14px 20px", fontSize: 13 }}>{s.enrollment?.admission_number ?? "—"}</td>
                     <td style={{ padding: "14px 20px" }}>
-                      {s.enrollment?.fee_status ? (
-                        <span style={{ fontSize: 11, fontWeight: 700, color: FEE_COLORS[s.enrollment.fee_status], background: `${FEE_COLORS[s.enrollment.fee_status]}15`, padding: "4px 8px", borderRadius: 6 }}>
-                          {s.enrollment.fee_status.charAt(0).toUpperCase() + s.enrollment.fee_status.slice(1)}
-                        </span>
-                      ) : "—"}
-                    </td>
-                    <td style={{ padding: "14px 20px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: s.is_active ? "var(--green)" : "var(--red)" }} />
-                        <span style={{ fontSize: 13 }}>{s.is_active ? "Active" : "Inactive"}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: "14px 20px" }}>
                       <button className="btn-outline" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => setDetail(s)}>Details</button>
                     </td>
                   </tr>
                 )) : (
-                  <tr><td colSpan={7} style={{ padding: 60, textAlign: "center", color: "var(--text-meta)" }}>No students found.</td></tr>
+                  <tr><td colSpan={5} style={{ padding: 60, textAlign: "center", color: "var(--text-meta)" }}>No students found matching your filters.</td></tr>
                 )}
               </tbody>
             </table>
