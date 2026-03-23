@@ -47,8 +47,13 @@ export default function StudentClassesPage() {
   const [viewingContent, setViewingContent] = useState<any>(null);
   const [quizStep, setQuizStep] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [toast, setToast] = useState("");
+  const [quizStatus, setQuizStatus] = useState({
+    submitted: false,
+    answers: [] as number[],
+    score: null as number | null,
+  });
+  const [viewingQuizResult, setViewingQuizResult] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -65,8 +70,14 @@ export default function StudentClassesPage() {
     if (quizStep < mockQuizQuestions.length - 1) {
       setQuizStep(prev => prev + 1);
     } else {
-      setQuizSubmitted(true);
-      showToast("Quiz submitted successfully! 🎯");
+      const finalScore = calculateScore();
+      setQuizStatus({
+        submitted: true,
+        answers: [...quizAnswers],
+        score: finalScore
+      });
+      setActiveTab("content");
+      showToast("Quiz submitted! Your results are now available. 🎯");
     }
   };
 
@@ -125,6 +136,80 @@ export default function StudentClassesPage() {
               <div className="mt-8 flex justify-end">
                 <button className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100" onClick={() => setViewingContent(null)}>Close Viewer</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Quiz Result Modal */}
+      {viewingQuizResult && (
+        <div className="fixed inset-0 z-[1500] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setViewingQuizResult(false)} />
+          <div className="relative w-full max-w-[720px] bg-white rounded-[40px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
+              <div>
+                <h3 className="text-2xl font-black text-slate-800 tracking-tight">Quiz Results</h3>
+                <p className="text-[14px] text-slate-500 font-bold uppercase tracking-widest mt-1">Algebra Review · Chapter 2</p>
+              </div>
+              <button className="w-12 h-12 flex items-center justify-center bg-white text-slate-400 hover:text-slate-600 rounded-2xl shadow-sm border border-slate-100 transition-all" onClick={() => setViewingQuizResult(false)}>
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="p-10">
+              <div className="flex flex-col md:flex-row gap-10 items-center justify-between mb-12">
+                <div className="relative w-40 h-40 flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-100" />
+                    <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="12" fill="transparent" 
+                      strokeDasharray={440} 
+                      strokeDashoffset={440 - (440 * (quizStatus.score || 0)) / mockQuizQuestions.length} 
+                      className="text-indigo-600 transition-all duration-1000 stroke-round" />
+                  </svg>
+                  <div className="absolute flex flex-col items-center">
+                    <span className="text-4xl font-black text-slate-800">{quizStatus.score}/{mockQuizQuestions.length}</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Score</span>
+                  </div>
+                </div>
+                
+                <div className="flex-1 space-y-4">
+                  <div className="p-6 bg-emerald-50/50 border border-emerald-100 rounded-[28px]">
+                    <h4 className="font-black text-emerald-700 text-xs uppercase tracking-widest mb-2">Teacher Feedback</h4>
+                    <p className="text-slate-600 text-[15px] font-medium leading-relaxed italic">
+                      "Excellent understanding of linear equations! Your step-by-step logic is becoming much clearer. Focus a bit more on quadratic expansions in the next chapter."
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6 max-h-[300px] overflow-y-auto pr-4 custom-scrollbar">
+                <h4 className="font-black text-slate-800 text-[13px] uppercase tracking-widest mb-4">Question Breakdown</h4>
+                {mockQuizQuestions.map((q, idx) => (
+                  <div key={q.id} className="p-6 bg-white border border-slate-100 rounded-3xl hover:border-indigo-100 transition-colors">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-sm ${
+                        quizStatus.answers[idx] === q.correct ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-slate-700 text-[15px] mb-3">{q.question}</p>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <span className="text-[11px] font-bold px-3 py-1 bg-slate-100 text-slate-500 rounded-lg">You: {q.options[quizStatus.answers[idx]] || "No Answer"}</span>
+                          <span className="text-[11px] font-bold px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg">Correct: {q.options[q.correct]}</span>
+                        </div>
+                        <p className="text-[12px] text-slate-400 font-medium italic">
+                          Explanation: The value of x is found by subtracting 5 and then dividing by 2.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="p-8 bg-slate-50 flex justify-end">
+              <button className="px-10 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200" onClick={() => setViewingQuizResult(false)}>Done</button>
             </div>
           </div>
         </div>
@@ -196,7 +281,10 @@ export default function StudentClassesPage() {
                       key={tab} 
                       onClick={() => {
                         setActiveTab(tab);
-                        if (tab === 'quiz') { setQuizSubmitted(false); setQuizStep(0); setQuizAnswers([]); }
+                        if (tab === 'quiz') { 
+                          setQuizStep(0); 
+                          // If not submitted, reset answers. If submitted, we just block them from re-taking in this flow
+                        }
                       }}
                       className={`px-5 py-2.5 rounded-xl text-[13px] font-bold transition-all uppercase tracking-wide ${
                         activeTab === tab 
@@ -248,10 +336,17 @@ export default function StudentClassesPage() {
                             </button>
                             {item.type === 'Quiz' && (
                               <button 
-                                onClick={() => setActiveTab('quiz')}
-                                className="flex-1 py-1.5 bg-indigo-600 text-white text-[12px] font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100"
+                                onClick={() => {
+                                  if (quizStatus.submitted) {
+                                    setViewingQuizResult(true);
+                                  } else {
+                                    setActiveTab('quiz');
+                                    setQuizAnswers([]);
+                                  }
+                                }}
+                                className={`flex-1 py-1.5 ${quizStatus.submitted ? 'bg-indigo-50 text-indigo-600 border border-indigo-200' : 'bg-indigo-600 text-white'} text-[12px] font-bold rounded-xl hover:opacity-90 transition-all shadow-md shadow-indigo-100`}
                               >
-                                Attempt
+                                {quizStatus.submitted ? 'View Result' : 'Attempt'}
                               </button>
                             )}
                           </div>
@@ -297,87 +392,59 @@ export default function StudentClassesPage() {
 
                 {activeTab === "quiz" && (
                   <div className="bg-white border border-slate-200 rounded-3xl p-8 md:p-12 shadow-sm min-h-[500px] flex flex-col items-center justify-center max-w-[800px] mx-auto">
-                    {!quizSubmitted ? (
-                      <div className="w-full space-y-8 animate-in fade-in zoom-in duration-500">
-                        <div className="flex justify-between items-end mb-4">
-                          <div>
-                            <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-lg uppercase tracking-widest mb-2 inline-block">Chapter 3 Quiz</span>
-                            <h2 className="text-2xl font-black text-slate-800">Question {quizStep + 1} of {mockQuizQuestions.length}</h2>
-                          </div>
-                          <div className="text-sm font-bold text-slate-400">Total Score Potential: {mockQuizQuestions.length}</div>
+                    <div className="w-full space-y-8 animate-in fade-in zoom-in duration-500">
+                      <div className="flex justify-between items-end mb-4">
+                        <div>
+                          <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-lg uppercase tracking-widest mb-2 inline-block">Chapter 2 Quiz</span>
+                          <h2 className="text-2xl font-black text-slate-800">Question {quizStep + 1} of {mockQuizQuestions.length}</h2>
                         </div>
-                        
-                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-10">
-                          <div className="h-full bg-indigo-600 rounded-full transition-all duration-300" style={{ width: `${((quizStep + 1) / mockQuizQuestions.length) * 100}%` }} />
-                        </div>
-
-                        <p className="text-xl font-extrabold text-slate-700 leading-relaxed mb-8">{mockQuizQuestions[quizStep].question}</p>
-
-                        <div className="grid grid-cols-1 gap-4">
-                          {mockQuizQuestions[quizStep].options.map((option, idx) => (
-                            <button 
-                              key={idx} 
-                              onClick={() => handleQuizAnswer(idx)}
-                              className={`w-full p-5 text-left rounded-2xl border-2 transition-all font-bold ${
-                                quizAnswers[quizStep] === idx 
-                                  ? "bg-indigo-50 border-indigo-600 text-indigo-700 ring-4 ring-indigo-500/10" 
-                                  : "bg-white border-slate-100 text-slate-600 hover:border-slate-300"
-                              }`}
-                            >
-                              <div className="flex items-center gap-4">
-                                <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${
-                                  quizAnswers[quizStep] === idx ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400"
-                                }`}>{String.fromCharCode(65 + idx)}</span>
-                                {option}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="flex justify-between pt-8 border-t border-slate-50">
-                          <button 
-                            disabled={quizStep === 0}
-                            onClick={() => setQuizStep(prev => prev - 1)}
-                            className="px-6 py-3 font-bold text-slate-400 hover:text-slate-700 disabled:opacity-30 transition-all uppercase tracking-widest text-[12px]"
-                          >
-                            Previous
-                          </button>
-                          <button 
-                            disabled={quizAnswers[quizStep] === undefined}
-                            onClick={handleQuizNext}
-                            className="px-10 py-3 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 active:scale-[0.98]"
-                          >
-                            {quizStep === mockQuizQuestions.length - 1 ? "Submit Quiz" : "Next Question"}
-                          </button>
-                        </div>
+                        <div className="text-sm font-bold text-slate-400">Total Score Potential: {mockQuizQuestions.length}</div>
                       </div>
-                    ) : (
-                      <div className="flex flex-col items-center text-center animate-in zoom-in slide-in-from-bottom-5 duration-700">
-                        <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-inner">
-                          <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-                        </div>
-                        <h2 className="text-3xl font-black text-slate-900 mb-2">Quiz Completed!</h2>
-                        <p className="text-slate-500 font-medium mb-10 max-w-sm">Great effort! You've successfully finished the interactive quiz assessment for Chapter 3.</p>
-                        
-                        <div className="grid grid-cols-2 gap-4 w-full max-w-md mb-10">
-                          <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                            <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Your Score</div>
-                            <div className="text-3xl font-black text-emerald-600">{calculateScore()}/{mockQuizQuestions.length}</div>
-                          </div>
-                          <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                            <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Percentage</div>
-                            <div className="text-3xl font-black text-indigo-600">{Math.round((calculateScore() / mockQuizQuestions.length) * 100)}%</div>
-                          </div>
-                        </div>
+                      
+                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-10">
+                        <div className="h-full bg-indigo-600 rounded-full transition-all duration-300" style={{ width: `${((quizStep + 1) / mockQuizQuestions.length) * 100}%` }} />
+                      </div>
 
+                      <p className="text-xl font-extrabold text-slate-700 leading-relaxed mb-8">{mockQuizQuestions[quizStep].question}</p>
+
+                      <div className="grid grid-cols-1 gap-4">
+                        {mockQuizQuestions[quizStep].options.map((option, idx) => (
+                          <button 
+                            key={idx} 
+                            onClick={() => handleQuizAnswer(idx)}
+                            className={`w-full p-5 text-left rounded-2xl border-2 transition-all font-bold ${
+                              quizAnswers[quizStep] === idx 
+                                ? "bg-indigo-50 border-indigo-600 text-indigo-700 ring-4 ring-indigo-500/10" 
+                                : "bg-white border-slate-100 text-slate-600 hover:border-slate-300"
+                            }`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${
+                                quizAnswers[quizStep] === idx ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400"
+                              }`}>{String.fromCharCode(65 + idx)}</span>
+                              {option}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="flex justify-between pt-8 border-t border-slate-50">
                         <button 
-                          onClick={() => setActiveTab('content')}
-                          className="px-12 py-3.5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-[0.98]"
+                          disabled={quizStep === 0}
+                          onClick={() => setQuizStep(prev => prev - 1)}
+                          className="px-6 py-3 font-bold text-slate-400 hover:text-slate-700 disabled:opacity-30 transition-all uppercase tracking-widest text-[12px]"
                         >
-                          Back to Materials
+                          Previous
+                        </button>
+                        <button 
+                          disabled={quizAnswers[quizStep] === undefined}
+                          onClick={handleQuizNext}
+                          className="px-10 py-3 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 active:scale-[0.98]"
+                        >
+                          {quizStep === mockQuizQuestions.length - 1 ? "Submit Quiz" : "Next Question"}
                         </button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
               </div>
