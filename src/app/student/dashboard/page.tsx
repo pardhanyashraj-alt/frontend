@@ -2,12 +2,99 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-
 import StudentSidebar from '../../components/StudentSidebar';
+import { apiFetch } from '../../lib/api';
+
+interface DashboardData {
+  student: {
+    user_id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    is_password_changed: boolean;
+  };
+  class: {
+    class_id: string;
+    section: string;
+    grade_level: number;
+    school_name: string;
+    enrolled_on: string;
+  };
+  teachers: Array<{
+    teacher_id: string;
+    first_name: string;
+    last_name: string;
+    subject: string;
+    is_classroom_teacher: boolean;
+  }>;
+  published_chapters: Array<{
+    class_chapter_id: string;
+    subject: string;
+    published_date: string;
+  }>;
+  total_published_chapters: number;
+  quiz_summary: {
+    total_attempts: number;
+    average_score: number;
+    recent_attempts: Array<{
+      quiz_attempt_id: string;
+      subject: string;
+      score: number;
+      total_questions: number;
+      percentage: number;
+      status: string;
+      submitted_date: string;
+    }>;
+  };
+}
 
 export default function StudentDashboard() {
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [contentFilter, setContentFilter] = useState('All');
   const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        const res = await apiFetch('/student/dashboard');
+        if (res.ok) {
+          const data: DashboardData = await res.json();
+          setDashboardData(data);
+        } else {
+          console.error('Failed to load dashboard');
+        }
+      } catch (err) {
+        console.error('Error loading dashboard:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <>
+        <StudentSidebar activePage="dashboard" />
+        <main className="main" style={{ padding: 24 }}>
+          <p>Loading dashboard...</p>
+        </main>
+      </>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <>
+        <StudentSidebar activePage="dashboard" />
+        <main className="main" style={{ padding: 24 }}>
+          <p>Failed to load dashboard data.</p>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>
@@ -53,7 +140,7 @@ export default function StudentDashboard() {
         {/* Top bar */}
         <div className="topbar">
           <div className="topbar-left">
-            <div className="greeting">Welcome back, Aryan 👋</div>
+            <div className="greeting">Welcome back, {dashboardData.student.first_name} 👋</div>
             <h1>Student Dashboard</h1>
           </div>
           <div className="topbar-right">
@@ -75,9 +162,9 @@ export default function StudentDashboard() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <div className="stat-value">A-</div>
-            <div className="stat-label">Overall Average</div>
-            <span className="stat-badge green">Top 15%</span>
+            <div className="stat-value">{dashboardData.quiz_summary.average_score.toFixed(1)}%</div>
+            <div className="stat-label">Average Score</div>
+            <span className="stat-badge green">Quiz Performance</span>
           </div>
           
           {/* 7. My Attendance */}
@@ -87,10 +174,10 @@ export default function StudentDashboard() {
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
             </div>
-            <div className="stat-value">92%</div>
-            <div className="stat-label">Attendance Rate</div>
+            <div className="stat-value">{dashboardData.total_published_chapters}</div>
+            <div className="stat-label">Published Chapters</div>
             <div className="progress-bar mt-2">
-               <div className="progress-fill fill-blue" style={{ width: "92%" }}></div>
+               <div className="progress-fill fill-blue" style={{ width: "100%" }}></div>
             </div>
           </div>
 
@@ -102,9 +189,9 @@ export default function StudentDashboard() {
                 <polyline points="22 4 12 14.01 9 11.01" />
               </svg>
             </div>
-            <div className="stat-value">2</div>
-            <div className="stat-label">Pending Assignments</div>
-            <span className="stat-badge orange">Due this week</span>
+            <div className="stat-value">{dashboardData.quiz_summary.total_attempts}</div>
+            <div className="stat-label">Quiz Attempts</div>
+            <span className="stat-badge orange">Total Completed</span>
           </div>
           
           <div className="stat-card purple">
@@ -114,9 +201,9 @@ export default function StudentDashboard() {
                 <polyline points="12 6 12 12 16 14" />
               </svg>
             </div>
-            <div className="stat-value">12h</div>
-            <div className="stat-label">Study Hours</div>
-            <span className="stat-badge purple">This week</span>
+            <div className="stat-value">Grade {dashboardData.class.grade_level}</div>
+            <div className="stat-label">Current Class</div>
+            <span className="stat-badge purple">Section {dashboardData.class.section}</span>
           </div>
         </div>
 
@@ -132,56 +219,30 @@ export default function StudentDashboard() {
               <Link href="/student/classes" className="btn-outline">All Classes</Link>
             </div>
 
-            <div className="class-row">
-              <div className="class-icon avatar ma">MA</div>
-              <div className="class-info">
-                <div className="class-name">Mathematics</div>
-                <div className="class-meta">Mr. Sharma · Module 4/10</div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div className="progress-section" style={{ minWidth: '100px' }}>
-                  <div className="progress-label">PROGRESS <span className="progress-pct">40%</span></div>
-                  <div className="progress-bar">
-                    <div className="progress-fill fill-blue" style={{ width: "40%" }}></div>
+            {dashboardData.teachers.map((teacher, index) => {
+              const colors = ['var(--blue)', 'var(--orange)', 'var(--green)', 'var(--purple)'];
+              const color = colors[index % colors.length];
+              const initials = `${teacher.first_name[0]}${teacher.last_name[0]}`.toUpperCase();
+              
+              return (
+                <div className="class-row" key={teacher.teacher_id}>
+                  <div className="class-icon avatar" style={{ background: color }}>{initials}</div>
+                  <div className="class-info">
+                    <div className="class-name">{teacher.subject}</div>
+                    <div className="class-meta">{teacher.first_name} {teacher.last_name} {teacher.is_classroom_teacher ? '· Classroom Teacher' : ''}</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div className="progress-section" style={{ minWidth: '100px' }}>
+                      <div className="progress-label">PROGRESS <span className="progress-pct">75%</span></div>
+                      <div className="progress-bar">
+                        <div className="progress-fill fill-blue" style={{ width: "75%" }}></div>
+                      </div>
+                    </div>
+                    <Link href={`/student/classes/${dashboardData.class.class_id}`} className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none' }}>Open</Link>
                   </div>
                 </div>
-                <Link href="/student/classes/1" className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none' }}>Open</Link>
-              </div>
-            </div>
-
-            <div className="class-row">
-              <div className="class-icon avatar sc">SC</div>
-              <div className="class-info">
-                <div className="class-name">Science</div>
-                <div className="class-meta">Mrs. Gupta · Module 6/8</div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div className="progress-section" style={{ minWidth: '100px' }}>
-                  <div className="progress-label">PROGRESS <span className="progress-pct">75%</span></div>
-                  <div className="progress-bar">
-                    <div className="progress-fill fill-orange" style={{ width: "75%" }}></div>
-                  </div>
-                </div>
-                <Link href="/student/classes/2" className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none' }}>Open</Link>
-              </div>
-            </div>
-
-            <div className="class-row">
-              <div className="class-icon avatar en">EN</div>
-              <div className="class-info">
-                <div className="class-name">English Lit</div>
-                <div className="class-meta">Ms. Davis · Module 2/5</div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div className="progress-section" style={{ minWidth: '100px' }}>
-                  <div className="progress-label">PROGRESS <span className="progress-pct">40%</span></div>
-                  <div className="progress-bar">
-                    <div className="progress-fill fill-green" style={{ width: "40%" }}></div>
-                  </div>
-                </div>
-                <Link href="/student/classes/3" className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none' }}>Open</Link>
-              </div>
-            </div>
+              );
+            })}
           </div>
 
           {/* 8. Class Schedule */}

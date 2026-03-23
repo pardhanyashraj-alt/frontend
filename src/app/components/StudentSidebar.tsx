@@ -94,7 +94,6 @@ export default function StudentSidebar({ activePage }: StudentSidebarProps) {
               <polyline points="14 2 14 8 20 8" />
             </svg>
             Assignments
-            <span className="nav-badge" style={{ background: '#059669' }}>2</span>
           </Link>
           <Link href="/student/schedule" className={`nav-item${activePage === "schedule" ? " active student-active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">

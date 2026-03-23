@@ -1,57 +1,76 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import StudentSidebar from "../../components/StudentSidebar";
+import { apiFetch } from "../../lib/api";
 
+interface StudentClass {
+  class_id: string;
+  section: string;
+  grade_level: number;
+  school_name: string;
+  enrolled_on: string;
+}
 
-const studentClasses = [
-  {
-    id: 1,
-    name: "Mathematics",
-    teacher: "Mr. Sharma",
-    initials: "MA",
-    color: "var(--blue)",
-    schedule: "Mon, Wed, Fri · Room 204",
-    progress: 72,
-    module: "Module 6: Calculus Basics",
-    students: 38
-  },
-  {
-    id: 2,
-    name: "Science",
-    teacher: "Mrs. Gupta",
-    initials: "SC",
-    color: "var(--orange)",
-    schedule: "Tue, Thu · Lab B",
-    progress: 58,
-    module: "Module 4: Chemical Bonding",
-    students: 34
-  },
-  {
-    id: 3,
-    name: "English Lit",
-    teacher: "Ms. Davis",
-    initials: "EN",
-    color: "var(--green)",
-    schedule: "Mon, Thu · Room 108",
-    progress: 84,
-    module: "Module 8: Shakespearean Tragedy",
-    students: 30
-  },
-  {
-    id: 4,
-    name: "History",
-    teacher: "Mr. Verma",
-    initials: "HI",
-    color: "var(--purple)",
-    schedule: "Wed, Fri · Room 301",
-    progress: 45,
-    module: "Module 3: The Indian Renaissance",
-    students: 40
-  }
-];
+interface SubjectInfo {
+  class_id: string;
+  subjects: string[];
+}
 
 export default function MyClasses() {
+  const [studentClass, setStudentClass] = useState<StudentClass | null>(null);
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadClassData = async () => {
+      try {
+        // First get dashboard data to get the enrolled class
+        const dashboardRes = await apiFetch('/student/dashboard');
+        if (dashboardRes.ok) {
+          const dashboardData = await dashboardRes.json();
+          setStudentClass(dashboardData.class);
+
+          // Then get subjects for this class
+          const subjectsRes = await apiFetch(`/student/classes/${dashboardData.class.class_id}/subjects`);
+          if (subjectsRes.ok) {
+            const subjectsData: SubjectInfo = await subjectsRes.json();
+            setSubjects(subjectsData.subjects);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading class data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadClassData();
+  }, []);
+
+  if (loading) {
+    return (
+      <>
+        <StudentSidebar activePage="classes" />
+        <main className="main" style={{ padding: 24 }}>
+          <p>Loading class information...</p>
+        </main>
+      </>
+    );
+  }
+
+  if (!studentClass) {
+    return (
+      <>
+        <StudentSidebar activePage="classes" />
+        <main className="main" style={{ padding: 24 }}>
+          <p>No class enrollment found.</p>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <StudentSidebar activePage="classes" />
@@ -59,8 +78,8 @@ export default function MyClasses() {
       <main className="main">
         <div className="topbar">
           <div className="topbar-left">
-            <div className="greeting">Study hard, Aryan 👋</div>
-            <h1>My Classes</h1>
+            <div className="greeting">Study hard 👋</div>
+            <h1>My Class</h1>
           </div>
           <div className="topbar-right">
             <div className="search-box">
@@ -68,47 +87,70 @@ export default function MyClasses() {
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              <input type="text" placeholder="Search courses…" />
+              <input type="text" placeholder="Search subjects…" />
             </div>
-            <button className="btn-primary" style={{ background: '#059669' }}>
-               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Join New Class
-            </button>
           </div>
         </div>
 
         <div className="card">
           <div className="card-header">
             <div>
-              <div className="card-title">Enrolled Courses</div>
-              <div className="card-subtitle">Manage your active learning modules</div>
+              <div className="card-title">Enrolled Class</div>
+              <div className="card-subtitle">Grade {studentClass.grade_level} - Section {studentClass.section}</div>
             </div>
           </div>
-          
-          {studentClasses.map((cls) => (
-            <div className="class-row" key={cls.id}>
-              <div className="class-icon avatar" style={{ background: cls.color }}>{cls.initials}</div>
-              <div className="class-info">
-                <div className="class-name">{cls.name}</div>
-                <div className="class-meta">{cls.teacher} · {cls.schedule}</div>
-              </div>
-              <div className="class-info" style={{ flex: 1.5 }}>
-                <div className="class-meta" style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>Current Module</div>
-                <div className="class-meta">{cls.module}</div>
-              </div>
-              <div className="progress-section">
-                <div className="progress-label">PROGRESS <span className="progress-pct">{cls.progress}%</span></div>
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: `${cls.progress}%`, background: cls.color }}></div>
-                </div>
-              </div>
-              <Link href={`/student/classes/${cls.id}`} className="btn-outline" style={{ marginLeft: '20px', textDecoration: 'none' }}>Enter Class</Link>
+
+          <div className="class-row">
+            <div className="class-icon avatar" style={{ background: 'var(--blue)' }}>
+              G{studentClass.grade_level}
             </div>
-          ))}
+            <div className="class-info">
+              <div className="class-name">Grade {studentClass.grade_level} - Section {studentClass.section}</div>
+              <div className="class-meta">{studentClass.school_name} · Enrolled {new Date(studentClass.enrolled_on).toLocaleDateString()}</div>
+            </div>
+            <div className="class-info" style={{ flex: 1.5 }}>
+              <div className="class-meta" style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                {subjects.length} Subjects
+              </div>
+              <div className="class-meta">{subjects.join(', ')}</div>
+            </div>
+            <Link href={`/student/classes/${studentClass.class_id}`} className="btn-primary" style={{ padding: '8px 16px', textDecoration: 'none' }}>
+              View Class
+            </Link>
+          </div>
         </div>
+
+        {subjects.length > 0 && (
+          <div className="card" style={{ marginTop: '24px' }}>
+            <div className="card-header">
+              <div>
+                <div className="card-title">Subjects</div>
+                <div className="card-subtitle">Available subjects in your class</div>
+              </div>
+            </div>
+
+            {subjects.map((subject, index) => {
+              const colors = ['var(--blue)', 'var(--orange)', 'var(--green)', 'var(--purple)', 'var(--red)'];
+              const color = colors[index % colors.length];
+              const initials = subject.substring(0, 2).toUpperCase();
+
+              return (
+                <div className="class-row" key={subject}>
+                  <div className="class-icon avatar" style={{ background: color }}>
+                    {initials}
+                  </div>
+                  <div className="class-info">
+                    <div className="class-name">{subject}</div>
+                    <div className="class-meta">Grade {studentClass.grade_level} · Section {studentClass.section}</div>
+                  </div>
+                  <Link href={`/student/classes/${studentClass.class_id}?subject=${encodeURIComponent(subject)}`} className="btn-outline" style={{ padding: '6px 12px', textDecoration: 'none' }}>
+                    View Content
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </main>
     </>
   );
