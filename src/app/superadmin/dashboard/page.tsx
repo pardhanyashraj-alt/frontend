@@ -42,16 +42,16 @@ export default function SuperAdminDashboard() {
         ]);
 
         if (schoolsRes.ok) {
-          const schoolsData: any[] = await schoolsRes.json();
+          const schoolsData = await schoolsRes.json();
           // Normalise is_active so status badges render correctly
-          const normalised = schoolsData.map(s => ({ ...s, is_active: normaliseBool(s.is_active) }));
+          const normalised = (Array.isArray(schoolsData) ? schoolsData : []).map(s => ({ ...s, is_active: normaliseBool(s.is_active) }));
           setStats(prev => ({ ...prev, schools: normalised.length }));
           setLatestSchools(normalised.slice(0, 3));
         }
 
         if (adminsRes.ok) {
           const adminsData = await adminsRes.json();
-          const allAdmins = adminsData.admins || [];
+          const allAdmins = adminsData?.admins || [];
           const activeCount = allAdmins.filter(
             (a: any) => normaliseBool(a.is_active) && normaliseBool(a.school?.is_active)
           ).length;
@@ -60,10 +60,11 @@ export default function SuperAdminDashboard() {
 
         if (booksRes.ok) {
           // Each item in the list is one chapter entry — so list length = chapter count
-          const booksData: BookListItem[] = await booksRes.json();
-          setStats(prev => ({ ...prev, chapters: booksData.length }));
+          const booksData = await booksRes.json();
+          const booksArr = Array.isArray(booksData) ? booksData : [];
+          setStats(prev => ({ ...prev, chapters: booksArr.length }));
           // Show the 3 most recently added chapters in the pipeline widget
-          setRecentChapters(booksData.slice(0, 3));
+          setRecentChapters(booksArr.slice(0, 3));
         }
       } catch (err) {
         console.error("Dashboard fetch error:", err);

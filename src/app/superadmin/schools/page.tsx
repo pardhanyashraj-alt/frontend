@@ -118,8 +118,9 @@ export default function SchoolsPage() {
     try {
       const res = await apiFetch("/sudo/schools");
       if (res.ok) {
-        const data: any[] = await res.json();
-        setSchools(data.map(s => ({ ...s, is_active: normaliseBool(s.is_active) })));
+        const data = await res.json();
+        const dataArr = Array.isArray(data) ? data : [];
+        setSchools(dataArr.map(s => ({ ...s, is_active: normaliseBool(s.is_active) })));
       }
     } catch (err) {
       console.error("Fetch schools error:", err);
@@ -139,12 +140,12 @@ export default function SchoolsPage() {
     setErrors(prev => { const n = { ...prev }; delete n.state; delete n.city; return n; });
   };
 
-  const filtered = schools.filter(s =>
-    s.school_name.toLowerCase().includes(search.toLowerCase()) ||
-    s.city.toLowerCase().includes(search.toLowerCase())
+  const filtered = (Array.isArray(schools) ? schools : []).filter(s =>
+    (s.school_name || "").toLowerCase().includes(search.toLowerCase()) ||
+    (s.city || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalStudents = schools.reduce((acc, s) => acc + (s.stats?.students_enrolled ?? 0), 0);
+  const totalStudents = (Array.isArray(schools) ? schools : []).reduce((acc, s) => acc + (s.stats?.students_enrolled ?? 0), 0);
 
   // ── Validation ──────────────────────────────────────────────────────────────
 
@@ -729,9 +730,9 @@ export default function SchoolsPage() {
 
         {/* Stats */}
         <div className="stats-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-          <div className="stat-card blue"><div className="stat-value">{schools.length}</div><div className="stat-label">Total Schools</div></div>
-          <div className="stat-card green"><div className="stat-value">{schools.filter(s => s.is_active).length}</div><div className="stat-label">Active</div></div>
-          <div className="stat-card orange"><div className="stat-value">{schools.filter(s => !s.is_active).length}</div><div className="stat-label">Inactive</div></div>
+          <div className="stat-card blue"><div className="stat-value">{schools?.length || 0}</div><div className="stat-label">Total Schools</div></div>
+          <div className="stat-card green"><div className="stat-value">{(Array.isArray(schools) ? schools : []).filter(s => s.is_active).length}</div><div className="stat-label">Active</div></div>
+          <div className="stat-card orange"><div className="stat-value">{(Array.isArray(schools) ? schools : []).filter(s => !s.is_active).length}</div><div className="stat-label">Inactive</div></div>
           <div className="stat-card purple"><div className="stat-value">{totalStudents.toLocaleString()}</div><div className="stat-label">Total Students</div></div>
         </div>
 

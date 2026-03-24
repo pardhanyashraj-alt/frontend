@@ -44,12 +44,12 @@ export default function AdminManagement() {
       const res = await apiFetch(`/sudo/admins?filter=all`);
       if (res.ok) {
         const data = await res.json();
-        const allAdmins = data.admins as Admin[];
+        const allAdmins = (data?.admins || []) as Admin[];
         setAdmins(allAdmins);
         
         // Calculate stats locally based on the same logic as the UI rows
-        const active = allAdmins.filter(a => a.is_active && a.school?.is_active).length;
-        const total = allAdmins.length;
+        const active = (Array.isArray(allAdmins) ? allAdmins : []).filter(a => a.is_active && a.school?.is_active).length;
+        const total = (Array.isArray(allAdmins) ? allAdmins : []).length;
         setStats({
           total,
           active,
@@ -93,13 +93,13 @@ export default function AdminManagement() {
     }
   };
 
-  const filtered = admins.filter(a => {
-    const fullName = `${a.first_name} ${a.last_name}`.toLowerCase();
+  const filtered = (Array.isArray(admins) ? admins : []).filter(a => {
+    const fullName = `${a.first_name || ""} ${a.last_name || ""}`.toLowerCase();
     const searchLower = search.toLowerCase();
     
     const matchesSearch = fullName.includes(searchLower) || 
-      a.school.school_name.toLowerCase().includes(searchLower) ||
-      a.email.toLowerCase().includes(searchLower);
+      (a.school?.school_name || "").toLowerCase().includes(searchLower) ||
+      (a.email || "").toLowerCase().includes(searchLower);
 
     const isActive = a.is_active && a.school?.is_active;
     const matchesStatus = statusFilter === "all" || 
