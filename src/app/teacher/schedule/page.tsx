@@ -210,7 +210,6 @@ export default function TeacherSchedulePage() {
                             {CLASS_LABELS[event.class_id] ??
                               `Class ${event.class_id}`}{" "}
                             · Sec {event.section}
-                            {event.room ? ` · Room ${event.room}` : ""}
                           </div>
                           <span
                             className="tag ongoing"
