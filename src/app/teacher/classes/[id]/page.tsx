@@ -4,7 +4,7 @@ import { useState, useMemo, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../../components/Sidebar";
 import Link from "next/link";
-import { mockBooks, mockChapters } from "../../../data/mockData";
+import { mockBooks, mockChapters, mockPublished } from "../../../data/mockData";
 
 // Shared data (In a real app, this would be fetched from an API)
 const classesData = [
@@ -58,11 +58,7 @@ const allStudents = [
   { id: 9, name: "Meera Iyer", initials: "MI", color: "var(--green)", class: "Mathematics", attendance: 97, grade: 88, status: "good" },
 ];
 
-const publishedContent = [
-  { id: 1, type: "Summary", book: "NCERT Math Part I", chapter: "Chapter 3", date: "2026-03-20" },
-  { id: 2, type: "Quiz", book: "NCERT Math Part I", chapter: "Chapter 3", date: "2026-03-21" },
-  { id: 3, type: "Question Answer Bank", book: "NCERT Math Part I", chapter: "Chapter 3", date: "2026-03-22" },
-];
+// Hardcoded placeholder removed in favor of mockPublished filtering
 
 // ─── REUSABLE COMPONENTS ──────────────────────────────────────
 
@@ -434,6 +430,10 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
     setShowProgress(true);
   };
 
+  const filteredPublishedContent = mockPublished.filter(
+    (item) => item.subject === classInfo.name
+  );
+
   return (
     <>
       <Sidebar activePage="classes" />
@@ -571,9 +571,27 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
               <h2 className="text-[18px] font-bold text-slate-800">Published Content</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {publishedContent.map(item => (
-                <PublishedContentCard key={item.id} item={item} subject={classInfo.name} />
-              ))}
+              {filteredPublishedContent.length > 0 ? filteredPublishedContent.map(item => (
+                <PublishedContentCard 
+                  key={item.id} 
+                  item={{
+                    ...item,
+                    type: item.contentType,
+                    date: item.publishDate
+                  }} 
+                  subject={classInfo.name} 
+                />
+              )) : (
+                <div className="col-span-full py-12 bg-white border border-slate-100 border-dashed rounded-3xl flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center mb-4">
+                    <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <h3 className="font-bold text-slate-700">No Published Content</h3>
+                  <p className="text-sm text-slate-400 max-w-[280px]">You haven't generated any AI materials for this subject yet.</p>
+                </div>
+              )}
             </div>
           </div>
 

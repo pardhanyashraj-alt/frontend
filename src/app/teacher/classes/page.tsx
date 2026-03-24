@@ -231,28 +231,7 @@ export default function ClassesPage() {
                 <span className="cdc-activity-time">{cls.recentTime}</span>
               </div>
 
-              {/* ── AI Buttons ── */}
-              <div style={{ padding: "14px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {([
-                  { label: "📄 Summary", type: "Summary" as ContentType, color: "var(--blue)" },
-                  { label: "📝 Quiz", type: "Quiz" as ContentType, color: "var(--green-dark)" },
-                  { label: "🗂️ Q-A Bank", type: "Question Answer Bank" as ContentType, color: "var(--purple)" },
-                ]).map(btn => (
-                  <button
-                    key={btn.type}
-                    onClick={() => openAIModal(cls, btn.type)}
-                    style={{
-                      flex: 1, padding: "7px 6px", border: `1.5px solid ${btn.color}`, borderRadius: 8,
-                      background: "white", color: btn.color, fontSize: 11, fontWeight: 700, cursor: "pointer",
-                      transition: "all 0.2s", whiteSpace: "nowrap",
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = btn.color; (e.currentTarget as HTMLButtonElement).style.color = "white"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "white"; (e.currentTarget as HTMLButtonElement).style.color = btn.color; }}
-                  >
-                    {btn.label}
-                  </button>
-                ))}
-              </div>
+              {/* ── AI Buttons Removed ── */}
             </div>
           ))}
         </div>
