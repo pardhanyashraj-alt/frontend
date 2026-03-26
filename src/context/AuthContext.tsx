@@ -19,16 +19,10 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string; needsPasswordChange?: boolean }>;
   logout: () => void;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
   isAuthenticated: boolean;
 }
-
-const mockUsers: Record<string, User> = {
-  "admin@gmail.com": { user_id: "u1", email: "admin@gmail.com", first_name: "Admin", last_name: "User", role: "admin", school_id: "s1", is_active: true, is_password_changed: true, created_at: "2026-01-01" },
-  "teacher@gmail.com": { user_id: "u2", email: "teacher@gmail.com", first_name: "Rita", last_name: "Sharma", role: "teacher", school_id: "s1", is_active: true, is_password_changed: true, created_at: "2026-01-01" },
-  "student@gmail.com": { user_id: "u3", email: "student@gmail.com", first_name: "Priya", last_name: "Sharma", role: "student", school_id: "s1", is_active: true, is_password_changed: true, created_at: "2026-01-01" },
-  "owner@eduflow.com": { user_id: "u4", email: "owner@eduflow.com", first_name: "Platform", last_name: "Owner", role: "superadmin", school_id: "s1", is_active: true, is_password_changed: true, created_at: "2026-01-01" }
-};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -39,15 +33,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check if user is already logged in on mount
   useEffect(() => {
     const checkAuth = async () => {
-      // Use our static mock logic
-      const savedEmail = localStorage.getItem('mock_user_email');
-      if (savedEmail && mockUsers[savedEmail]) {
-        // Simulate a tiny network delay for realism
-        await new Promise(resolve => setTimeout(resolve, 300));
-        setUser(mockUsers[savedEmail]);
-      } else {
-        localStorage.removeItem('mock_user_email');
-        setUser(null);
+      const accessToken = localStorage.getItem('access_token');
+      if (accessToken) {
+        try {
+          const response = await apiFetch('/auth/me');
+
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+          } else {
+            // Token is invalid, clear it
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+          }
+        } catch (error) {
+          console.error('Error checking auth:', error);
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        }
       }
       setIsLoading(false);
     };
@@ -56,26 +59,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-
     try {
-      const mockUser = mockUsers[email.toLowerCase()];
-      
-      // We accept any password for the mock except empty
-      if (mockUser && password.length >= 6) {
-        // Store persistent mock token
-        localStorage.setItem('mock_user_email', email.toLowerCase());
-        setUser(mockUser);
+      const response = await apiFetch('/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        requiresAuth: false, // Login doesn't need auth
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Store tokens
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('refresh_token', data.refresh_token);
+
+        // Set user data
+        setUser(data.user);
 
         return {
           success: true,
-          needsPasswordChange: false
+          needsPasswordChange: !data.is_password_changed
         };
       } else {
+        const errorData = await response.json().catch(() => ({ detail: 'Login failed' }));
         return {
           success: false,
-          error: 'Invalid email or password'
+          error: errorData.detail || 'Invalid email or password'
         };
       }
     } catch (error) {
@@ -88,14 +100,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem('mock_user_email');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     setUser(null);
+  };
+
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    try {
+      const response = await apiFetch('/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          old_password: oldPassword,
+          new_password: newPassword
+        }),
+      });
+
+      if (response.ok) {
+        return {
+          success: true
+        };
+      } else {
+        const errorData = await response.json().catch(() => ({ detail: 'Password change failed' }));
+        return {
+          success: false,
+          error: errorData.detail || 'Failed to change password'
+        };
+      }
+    } catch (error) {
+      console.error('Change password error:', error);
+      return {
+        success: false,
+        error: 'Network error. Please try again.'
+      };
+    }
   };
 
   const value: AuthContextType = {
     user,
     login,
     logout,
+    changePassword,
     isLoading,
     isAuthenticated: !!user,
   };
