@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { apiFetch } from '../lib/api';
 
 interface User {
   user_id: string;
@@ -34,11 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const accessToken = localStorage.getItem('access_token');
       if (accessToken) {
         try {
-          const response = await fetch('http://127.0.0.1:8000/auth/me', {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-            },
-          });
+          const response = await apiFetch('/auth/me');
 
           if (response.ok) {
             const userData = await response.json();
@@ -103,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Login error:', error);
       return {
         success: false,
-        error: 'Network error. Please try again.'
+        error: 'Network error. Please check if the backend server is running.'
       };
     }
   };

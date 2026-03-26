@@ -234,6 +234,51 @@ export default function ContentPage() {
 
   const renderQABank = (qa_bank?: Record<string, any>) => {
     if (!qa_bank) return <div style={{ color: "var(--text-meta)", fontSize: 14 }}>No Q&A available.</div>;
+    
+    // Handle the new structure with exercises
+    if (qa_bank.qa_bank?.exercises) {
+      const exercises = qa_bank.qa_bank.exercises;
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {exercises.slice(0, 2).map((exercise: any, exerciseIndex: number) => (
+            <div key={exerciseIndex} style={{ border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+              <div style={{ padding: "12px 16px", background: "#F8FAFC", borderBottom: "1px solid var(--border)" }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "#1E40AF" }}>{exercise.section_title}</div>
+              </div>
+              <div style={{ padding: 16 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {exercise.questions?.slice(0, 3).map((question: any, questionIndex: number) => (
+                    <div key={questionIndex} style={{ padding: 12, background: "#F8FAFC", borderRadius: 8 }}>
+                      <div style={{ fontWeight: 600, fontSize: 12, color: "#DC2626", marginBottom: 4 }}>
+                        Q{question.question_number} ({question.type?.replace('_', ' ')})
+                      </div>
+                      <div style={{ fontSize: 13, color: "var(--text-primary)", marginBottom: 6, lineHeight: 1.5 }}>
+                        {question.question_text}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                        <strong>Answer:</strong> {question.answer.length > 100 ? question.answer.substring(0, 100) + '...' : question.answer}
+                      </div>
+                    </div>
+                  ))}
+                  {exercise.questions?.length > 3 && (
+                    <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-meta)", padding: 4 }}>
+                      …and {exercise.questions.length - 3} more questions in this section
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+          {exercises.length > 2 && (
+            <div style={{ textAlign: "center", fontSize: 12, color: "var(--text-meta)", padding: 8 }}>
+              …and {exercises.length - 2} more exercise sections
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    // Fallback for old structure
     const questions: any[] = qa_bank.questions || qa_bank.qa_pairs || Object.values(qa_bank)[0] || [];
     if (!Array.isArray(questions) || questions.length === 0) {
       return <div style={{ fontSize: 13, color: "var(--text-meta)" }}>Q&A data is in an unexpected format.</div>;
