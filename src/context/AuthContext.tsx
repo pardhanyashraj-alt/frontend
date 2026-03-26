@@ -39,26 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check if user is already logged in on mount
   useEffect(() => {
     const checkAuth = async () => {
-<<<<<<< HEAD
-      const accessToken = localStorage.getItem('access_token');
-      if (accessToken) {
-        try {
-          const response = await apiFetch('/auth/me');
-
-          if (response.ok) {
-            const userData = await response.json();
-            setUser(userData);
-          } else {
-            // Token is invalid, clear it
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-          }
-        } catch (error) {
-          console.error('Error checking auth:', error);
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-        }
-=======
       // Use our static mock logic
       const savedEmail = localStorage.getItem('mock_user_email');
       if (savedEmail && mockUsers[savedEmail]) {
@@ -67,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(mockUsers[savedEmail]);
       } else {
         localStorage.removeItem('mock_user_email');
->>>>>>> 9bb5ab978091b9c8ebd58271677592ae22912dbf
+        setUser(null);
       }
       setIsLoading(false);
     };
