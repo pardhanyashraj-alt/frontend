@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import StudentSidebar from '../../components/StudentSidebar';
+import { useAuth } from '../../context/AuthContext';
 import { apiFetch } from '../../lib/api';
 
 interface DashboardData {
@@ -49,13 +51,24 @@ interface DashboardData {
 }
 
 export default function StudentDashboard() {
+  const router = useRouter();
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [contentFilter, setContentFilter] = useState('All');
   const [showNotifications, setShowNotifications] = useState(false);
 
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
   useEffect(() => {
     const loadDashboard = async () => {
+      if (!isAuthenticated) return;
+      
       try {
         const res = await apiFetch('/student/dashboard');
         if (res.ok) {
@@ -72,9 +85,9 @@ export default function StudentDashboard() {
     };
 
     loadDashboard();
-  }, []);
+  }, [isAuthenticated]);
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <>
         <StudentSidebar activePage="dashboard" />
