@@ -4,7 +4,7 @@ import { useState } from "react";
 import StudentSidebar from "../../components/StudentSidebar";
 import { useTheme, type ThemePreference } from "../../components/ThemeProvider";
 
-type TabType = "profile" | "security" | "notifications" | "appearance" | "learning" | "privacy";
+type TabType = "profile" | "security" | "notifications" | "appearance" | "privacy";
 
 export default function StudentSettings() {
   const [activeTab, setActiveTab] = useState<TabType>("profile");
@@ -188,38 +188,6 @@ export default function StudentSettings() {
             </div>
           </div>
         );
-      case "learning":
-        return (
-          <div className="card">
-            <div className="card-header" style={{ padding: '24px' }}>
-              <div className="card-title">Learning Preferences</div>
-            </div>
-            <div className="card-body" style={{ padding: '24px' }}>
-              <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
-                <div className="form-group">
-                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Preferred study reminder time</label>
-                  <input type="time" className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} defaultValue="18:00" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label text-gray-700 dark:text-gray-300" style={{ marginBottom: '8px', display: 'block' }}>Daily study goal (hours)</label>
-                  <input type="number" className="form-input bg-white text-black dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-full" style={{ width: '100%' }} defaultValue="2" min="1" max="12" />
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '15px' }}>Enable study streak tracking</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-meta)', marginTop: '2px' }}>Track your daily learning consistency</div>
-                </div>
-                <div style={{ width: '44px', height: '24px', background: '#059669', borderRadius: '20px', position: 'relative', cursor: 'pointer' }}>
-                  <div style={{ position: 'absolute', top: '3px', left: '23px', width: '18px', height: '18px', background: 'white', borderRadius: '50%' }} />
-                </div>
-              </div>
-            </div>
-            <div className="card-footer" style={{ padding: '24px', display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
-              <button className="btn-primary" style={{ padding: '12px 28px', background: '#059669' }} onClick={handleSave}>Save Preferences</button>
-            </div>
-          </div>
-        );
       case "privacy":
         return (
           <div className="card">
@@ -279,7 +247,6 @@ export default function StudentSettings() {
             <button className={`tab-btn ${activeTab === "security" ? "active" : ""}`} onClick={() => setActiveTab("security")}>Security</button>
             <button className={`tab-btn ${activeTab === "notifications" ? "active" : ""}`} onClick={() => setActiveTab("notifications")}>Notifications</button>
             <button className={`tab-btn ${activeTab === "appearance" ? "active" : ""}`} onClick={() => setActiveTab("appearance")}>Appearance</button>
-            <button className={`tab-btn ${activeTab === "learning" ? "active" : ""}`} onClick={() => setActiveTab("learning")}>Learning Prefs</button>
             <button className={`tab-btn ${activeTab === "privacy" ? "active" : ""}`} onClick={() => setActiveTab("privacy")}>Privacy</button>
           </div>
 

@@ -173,11 +173,7 @@ export default function StudentSchedule() {
                           <div className="sch-title" style={{ fontSize: 16 }}>
                             {item.subject}
                           </div>
-                          <div className="sch-detail">
-                            {item.room
-                              ? `Room ${item.room}`
-                              : "Room TBD"}
-                          </div>
+                          <div className="sch-detail" />
                           {idx === 0 ? (
                             <span
                               className="tag ongoing"
@@ -299,7 +295,6 @@ export default function StudentSchedule() {
                                   }}
                                 >
                                   {cls.subject}
-                                  {cls.room ? ` · Rm ${cls.room}` : ""}
                                 </div>
                               </div>
                             );

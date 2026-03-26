@@ -200,7 +200,7 @@ export default function Home() {
               </div>
               <div className="sch-body">
                 <div className="sch-title">Mathematics — Grade 10</div>
-                <div className="sch-detail">Room 204 · 45 min</div>
+                <div className="sch-detail">45 min</div>
                 <span className="tag ongoing">ONGOING</span>
               </div>
             </div>
@@ -215,7 +215,7 @@ export default function Home() {
               </div>
               <div className="sch-body">
                 <div className="sch-title">Staff Meeting</div>
-                <div className="sch-detail">Conference Room · 1hr</div>
+                <div className="sch-detail">1 hr</div>
                 <span className="tag meeting">MEETING</span>
               </div>
             </div>
@@ -230,7 +230,7 @@ export default function Home() {
               </div>
               <div className="sch-body">
                 <div className="sch-title">English Lit — Grade 11</div>
-                <div className="sch-detail">Room 108 · 45 min</div>
+                <div className="sch-detail">45 min</div>
                 <span className="tag upcoming">UPCOMING</span>
               </div>
             </div>

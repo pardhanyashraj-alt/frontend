@@ -1,22 +1,22 @@
 "use client";
 
 import { Metadata } from "next";
-import { AuthProvider, useAuth } from "../context/AuthContext";
+import { AuthProvider, useAuth } from "../../context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated && pathname !== "/superadmin/login") {
+    if (!isLoading && !isAuthenticated && pathname !== "/superadmin/login") {
       router.push("/superadmin/login");
     }
-  }, [loading, isAuthenticated, pathname, router]);
+  }, [isLoading, isAuthenticated, pathname, router]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
         <div className="spinner"></div>

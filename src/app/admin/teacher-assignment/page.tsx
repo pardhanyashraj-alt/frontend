@@ -1,41 +1,10 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
-import { apiFetch } from "../../lib/api";
+import { useAdminContext, type TeacherClassAssignmentRecord } from "../../../context/AdminContext";
 
-interface ClassRecord {
-  class_id: string;
-  grade_level: number;
-  section: string;
-  school_id: string;
-  created_at: string;
-  student_count?: number;
-  teachers?: Array<{
-    teacher_id: string;
-    subject: string;
-    is_classroom_teacher: boolean;
-    assigned_date: string;
-  }>;
-  subjects?: string[];
-}
-
-interface Teacher {
-  teacher_id: string;
-  first_name: string;
-  last_name: string;
-}
-
-interface TeacherAssignment {
-  id: string;
-  class_id: string;
-  section: string;
-  subject: string;
-  teacher_id: string;
-  academic_year: string;
-}
-
-const emptyForm: Omit<TeacherAssignment, "id"> = {
+const emptyForm: Omit<TeacherClassAssignmentRecord, "id"> = {
   class_id: "",
   section: "",
   subject: "",
@@ -48,126 +17,37 @@ function normalizeSubject(s: string): string {
 }
 
 export default function TeacherAssignmentPage() {
-  const [classes, setClasses] = useState<ClassRecord[]>([]);
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [assignments, setAssignments] = useState<TeacherAssignment[]>([]);
-  const [currentAcademicYear] = useState("2024-25");
+  const {
+    classes,
+    teachers,
+    teacherAssignments: assignments,
+    addTeacherAssignment,
+    updateTeacherAssignment,
+    deleteTeacherAssignment,
+    currentAcademicYear,
+  } = useAdminContext();
 
   const [search, setSearch] = useState("");
   const [teacherFilter, setTeacherFilter] = useState("");
-  const [form, setForm] = useState<Omit<TeacherAssignment, "id">>(emptyForm);
+  const [form, setForm] = useState<Omit<TeacherClassAssignmentRecord, "id">>(emptyForm);
   const [formError, setFormError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [teacherSearchOpen, setTeacherSearchOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const loadClasses = async () => {
-    try {
-      const res = await apiFetch("/admin/classes");
-      if (res.ok) {
-        const data: ClassRecord[] = await res.json();
-        setClasses(data);
-      } else {
-        console.error("Failed to fetch classes");
-      }
-    } catch (err) {
-      console.error("Error fetching classes:", err);
-    }
-  };
-
-  const loadTeachers = async () => {
-    try {
-      const res = await apiFetch("/admin/teachers");
-      if (res.ok) {
-        const data: Teacher[] = await res.json();
-        setTeachers(data);
-      } else {
-        console.error("Failed to fetch teachers");
-      }
-    } catch (err) {
-      console.error("Error fetching teachers:", err);
-    }
-  };
-
-  const hydrateAssignments = async (availableClasses: ClassRecord[]) => {
-    let loaded: TeacherAssignment[] = [];
-
-    const hasInlineTeachers = availableClasses.some((c) => Array.isArray(c.teachers) && c.teachers.length > 0);
-    if (hasInlineTeachers) {
-      for (const c of availableClasses) {
-        if (Array.isArray(c.teachers)) {
-          loaded = loaded.concat(
-            c.teachers.map((t) => ({
-              id: `${c.class_id}-${t.teacher_id}-${t.subject}`,
-              class_id: c.class_id,
-              section: c.section,
-              subject: t.subject,
-              teacher_id: t.teacher_id,
-              academic_year: currentAcademicYear,
-            }))
-          );
-        }
-      }
-    } else {
-      // fallback: fetch each class details for assignment info
-      await Promise.all(
-        availableClasses.map(async (c) => {
-          try {
-            const res = await apiFetch(`/admin/classes/${c.class_id}`);
-            if (res.ok) {
-              const data: ClassRecord = await res.json();
-              if (Array.isArray(data.teachers)) {
-                loaded = loaded.concat(
-                  data.teachers.map((t) => ({
-                    id: `${c.class_id}-${t.teacher_id}-${t.subject}`,
-                    class_id: c.class_id,
-                    section: c.section,
-                    subject: t.subject,
-                    teacher_id: t.teacher_id,
-                    academic_year: currentAcademicYear,
-                  }))
-                );
-              }
-            }
-          } catch {
-            // ignore per class fails
-          }
-        })
-      );
-    }
-
-    setAssignments(loaded);
-  };
-
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      await Promise.all([loadClasses(), loadTeachers()]);
-      setLoading(false);
-    };
-
-    init();
-  }, []);
-
-  useEffect(() => {
-    if (classes.length > 0) {
-      hydrateAssignments(classes);
-    }
-  }, [classes]);
 
   const classOptions = useMemo(
-    () => [...classes].sort((a, b) => {
-      const aName = `Grade ${a.grade_level} ${a.section}`;
-      const bName = `Grade ${b.grade_level} ${b.section}`;
-      return aName.localeCompare(bName);
-    }),
+    () =>
+      [...classes].sort((a, b) => {
+        const aName = `${a.className} ${a.section}`;
+        const bName = `${b.className} ${b.section}`;
+        return aName.localeCompare(bName);
+      }),
     [classes]
   );
 
   const selectedClass = useMemo(() => {
     if (!form.class_id) return null;
-    return classes.find((cls) => String(cls.class_id) === form.class_id) ?? null;
+    return classes.find((cls) => String(cls.id) === form.class_id) ?? null;
   }, [form.class_id, classes]);
 
   const subjectOptions = useMemo(() => {
@@ -178,7 +58,7 @@ export default function TeacherAssignmentPage() {
     const q = teacherFilter.trim().toLowerCase();
     if (!q) return teachers;
     return teachers.filter((t) => {
-      const full = `${t.first_name} ${t.last_name}`.toLowerCase();
+      const full = t.name.toLowerCase();
       return full.includes(q);
     });
   }, [teachers, teacherFilter]);
@@ -186,19 +66,19 @@ export default function TeacherAssignmentPage() {
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
     let list = [...assignments].sort((a, b) => {
-      const ca = classes.find((c) => String(c.class_id) === a.class_id);
-      const cb = classes.find((c) => String(c.class_id) === b.class_id);
-      const aName = ca ? `Grade ${ca.grade_level} ${ca.section}` : a.class_id;
-      const bName = cb ? `Grade ${cb.grade_level} ${cb.section}` : b.class_id;
+      const ca = classes.find((c) => String(c.id) === a.class_id);
+      const cb = classes.find((c) => String(c.id) === b.class_id);
+      const aName = ca ? `${ca.className} ${ca.section}` : a.class_id;
+      const bName = cb ? `${cb.className} ${cb.section}` : b.class_id;
       return aName.localeCompare(bName) || a.section.localeCompare(b.section);
     });
     if (!q) return list;
 
     return list.filter((r) => {
-      const c = classes.find((c) => String(c.class_id) === r.class_id);
-      const classStr = c ? `Grade ${c.grade_level} ${c.section}` : r.class_id;
-      const t = teachers.find((t) => String(t.teacher_id) === r.teacher_id);
-      const teacherName = t ? `${t.first_name} ${t.last_name}` : r.teacher_id;
+      const c = classes.find((c) => String(c.id) === r.class_id);
+      const classStr = c ? `${c.className} ${c.section}` : r.class_id;
+      const t = teachers.find((t) => String(t.id) === r.teacher_id);
+      const teacherName = t ? t.name : r.teacher_id;
 
       return (
         classStr.toLowerCase().includes(q) ||
@@ -210,23 +90,6 @@ export default function TeacherAssignmentPage() {
     });
   }, [assignments, search, classes, teachers]);
 
-  const validateAssignment = (candidate: Omit<TeacherAssignment, "id">, excludeId?: string): string | null => {
-    if (!candidate.class_id) return "Select a class.";
-    if (!candidate.subject.trim()) return "Subject is required.";
-    if (!candidate.teacher_id) return "Select a teacher.";
-
-    const dup = assignments.find((a) =>
-      a.id !== excludeId &&
-      a.class_id === candidate.class_id &&
-      a.section === candidate.section &&
-      a.academic_year === candidate.academic_year &&
-      normalizeSubject(a.subject) === normalizeSubject(candidate.subject)
-    );
-
-    if (dup) return "This subject already has a teacher assigned for class/year.";
-    return null;
-  };
-
   const openCreate = () => {
     setEditingId(null);
     setForm({ ...emptyForm, academic_year: currentAcademicYear });
@@ -235,7 +98,7 @@ export default function TeacherAssignmentPage() {
     setShowModal(true);
   };
 
-  const openEdit = (row: TeacherAssignment) => {
+  const openEdit = (row: TeacherClassAssignmentRecord) => {
     setEditingId(row.id);
     setForm({
       class_id: row.class_id,
@@ -244,8 +107,8 @@ export default function TeacherAssignmentPage() {
       teacher_id: row.teacher_id,
       academic_year: row.academic_year,
     });
-    const teacher = teachers.find((t) => String(t.teacher_id) === row.teacher_id);
-    setTeacherFilter(teacher ? `${teacher.first_name} ${teacher.last_name}` : "");
+    const teacher = teachers.find((t) => String(t.id) === row.teacher_id);
+    setTeacherFilter(teacher ? teacher.name : "");
     setFormError(null);
     setShowModal(true);
   };
@@ -257,75 +120,46 @@ export default function TeacherAssignmentPage() {
   };
 
   const handleDelete = (id: string) => {
-    setAssignments((prev) => prev.filter((a) => a.id !== id));
+    if (confirm("Are you sure you want to delete this assignment?")) {
+      deleteTeacherAssignment(id);
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
     const year = form.academic_year.trim() || currentAcademicYear;
-    const payload: Omit<TeacherAssignment, "id"> = {
+    const payload = {
       ...form,
       subject: form.subject.trim(),
       academic_year: year,
     };
 
-    const err = validateAssignment(payload, editingId ?? undefined);
-    if (err) {
-      setFormError(err);
-      return;
-    }
-
     if (editingId) {
-      setAssignments((prev) => prev.map((a) => (a.id === editingId ? { ...payload, id: editingId } : a)));
-      closeModal();
-      return;
-    }
-
-    // POST to backend assign endpoint
-    try {
-      const res = await apiFetch(`/admin/classes/${payload.class_id}/assign-teacher`, {
-        method: "POST",
-        body: JSON.stringify({
-          teacher_id: payload.teacher_id,
-          subject: payload.subject,
-          is_classroom_teacher: false,
-        }),
-      });
-
+      const res = updateTeacherAssignment(editingId, payload);
       if (!res.ok) {
-        const errData = await res.json();
-        setFormError(errData.detail || "Failed to assign teacher");
+        setFormError(res.error);
         return;
       }
-
-      const id = editingId ?? `${payload.class_id}-${payload.teacher_id}-${payload.subject}`;
-      setAssignments((prev) => [...prev, { ...payload, id }]);
       closeModal();
-    } catch (reqErr) {
-      console.error("Error assigning teacher:", reqErr);
-      setFormError("Network error while assigning teacher.");
+      return;
     }
+
+    const res = addTeacherAssignment(payload);
+    if (!res.ok) {
+      setFormError(res.error);
+      return;
+    }
+    closeModal();
   };
 
   const pickTeacher = (id: string) => {
-    setForm({ ...form, teacher_id: id });
-    const teacher = teachers.find((t) => String(t.teacher_id) === id);
-    setTeacherFilter(teacher ? `${teacher.first_name} ${teacher.last_name}` : "");
+    setForm({ ...form, teacher_id: String(id) });
+    const teacher = teachers.find((t) => String(t.id) === String(id));
+    setTeacherFilter(teacher ? teacher.name : "");
     setTeacherSearchOpen(false);
   };
-
-  if (loading) {
-    return (
-      <>
-        <AdminSidebar activePage="teacher-assignment" />
-        <main className="main" style={{ padding: 24 }}>
-          <p>Loading teacher assignment data...</p>
-        </main>
-      </>
-    );
-  }
 
   return (
     <>
@@ -388,10 +222,10 @@ export default function TeacherAssignmentPage() {
               </thead>
               <tbody>
                 {rows.map((r) => {
-                  const cls = classes.find((c) => String(c.class_id) === r.class_id);
-                  const className = cls ? `Grade ${cls.grade_level} ${cls.section}` : r.class_id;
-                  const teacher = teachers.find((t) => String(t.teacher_id) === r.teacher_id);
-                  const teacherName = teacher ? `${teacher.first_name} ${teacher.last_name}` : r.teacher_id;
+                  const cls = classes.find((c) => String(c.id) === r.class_id);
+                  const className = cls ? `${cls.className} ${cls.section}` : r.class_id;
+                  const teacher = teachers.find((t) => String(t.id) === r.teacher_id);
+                  const teacherName = teacher ? teacher.name : r.teacher_id;
 
                   return (
                     <tr key={r.id} style={{ borderBottom: "1px solid var(--border)" }}>
@@ -451,7 +285,7 @@ export default function TeacherAssignmentPage() {
                     required
                     value={form.class_id}
                     onChange={(e) => {
-                      const cl = classes.find((c) => String(c.class_id) === e.target.value);
+                      const cl = classes.find((c) => String(c.id) === e.target.value);
                       setForm({
                         ...form,
                         class_id: e.target.value,
@@ -462,8 +296,8 @@ export default function TeacherAssignmentPage() {
                   >
                     <option value="">Select class</option>
                     {classOptions.map((c) => (
-                      <option key={c.class_id} value={String(c.class_id)}>
-                        Grade {c.grade_level} — Section {c.section}
+                      <option key={c.id} value={String(c.id)}>
+                        {c.className} — Section {c.section}
                       </option>
                     ))}
                   </select>
@@ -537,9 +371,9 @@ export default function TeacherAssignmentPage() {
                       ) : (
                         filteredTeachers.map((t) => (
                           <button
-                            key={t.teacher_id}
+                            key={t.id}
                             type="button"
-                            onClick={() => pickTeacher(t.teacher_id)}
+                            onClick={() => pickTeacher(String(t.id))}
                             style={{
                               display: "block",
                               width: "100%",
@@ -554,7 +388,7 @@ export default function TeacherAssignmentPage() {
                             }}
                             className="teacher-assign-pick"
                           >
-                            {t.first_name} {t.last_name}
+                            {t.name}
                           </button>
                         ))
                       )}

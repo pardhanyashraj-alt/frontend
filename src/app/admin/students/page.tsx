@@ -1,54 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
-import { apiFetch } from "../../lib/api";
 
-// ─── Types matching GET /admin/students response ──────────────────────────────
-
-interface Enrollment {
-  grade_level: number;
-  section: string;
-  admission_number: number;
-  parent_name: string;
-  parent_phone: string;
-  fee_status: "pending" | "paid" | "overdue";
-  enrollment_date: string;
-  is_active?: boolean;
-}
+// ─── Mock Data ────────────────────────────────────────────────────────────────
 
 interface Student {
   student_id: string;
   first_name: string;
   last_name: string;
   email: string;
-  phone_number?: string;
-  date_of_birth?: string;
   is_active: boolean;
   is_password_changed: boolean;
   created_at: string;
-  enrollment?: Enrollment;
+  enrollment?: {
+    grade_level: number;
+    section: string;
+    admission_number: number;
+    parent_name: string;
+    parent_phone: string;
+    fee_status: "pending" | "paid" | "overdue";
+    enrollment_date: string;
+  };
 }
 
-interface SchoolClass {
-  class_id: string;
-  grade_level: number;
-  section: string;
-}
-
-// ─── Register form matching POST /admin/students/register ─────────────────────
-
-const emptyForm = {
-  email: "",
-  first_name: "",
-  last_name: "",
-  date_of_birth: "",
-  class_grade: "",
-  section: "",
-  admission_number: "",
-  parent_name: "",
-  parent_phone: "",
-};
+const mockStudents: Student[] = [
+  { student_id: "s1", first_name: "Anjali", last_name: "Kapoor", email: "anjali@school.edu", is_active: true, is_password_changed: true, created_at: "2025-06-01", enrollment: { grade_level: 10, section: "A", admission_number: 1001, parent_name: "Ramesh Kapoor", parent_phone: "+91 98765 43210", fee_status: "paid", enrollment_date: "2025-06-01" } },
+  { student_id: "s2", first_name: "Rohan", last_name: "Mehta", email: "rohan@school.edu", is_active: true, is_password_changed: true, created_at: "2025-06-01", enrollment: { grade_level: 10, section: "A", admission_number: 1002, parent_name: "Suresh Mehta", parent_phone: "+91 98765 43211", fee_status: "pending", enrollment_date: "2025-06-01" } },
+  { student_id: "s3", first_name: "Shreya", last_name: "Mishra", email: "shreya@school.edu", is_active: true, is_password_changed: false, created_at: "2025-06-02", enrollment: { grade_level: 11, section: "A", admission_number: 1003, parent_name: "Anil Mishra", parent_phone: "+91 98765 43212", fee_status: "paid", enrollment_date: "2025-06-02" } },
+  { student_id: "s4", first_name: "Vikram", last_name: "Singh", email: "vikram@school.edu", is_active: true, is_password_changed: true, created_at: "2025-06-03", enrollment: { grade_level: 8, section: "C", admission_number: 1004, parent_name: "Balraj Singh", parent_phone: "+91 98765 43213", fee_status: "overdue", enrollment_date: "2025-06-03" } },
+  { student_id: "s5", first_name: "Priya", last_name: "Patel", email: "priya@school.edu", is_active: true, is_password_changed: true, created_at: "2025-06-04", enrollment: { grade_level: 10, section: "B", admission_number: 1005, parent_name: "Kiran Patel", parent_phone: "+91 98765 43214", fee_status: "paid", enrollment_date: "2025-06-04" } },
+];
 
 const FEE_COLORS: Record<string, string> = {
   paid: "var(--green-dark)",
@@ -57,46 +39,23 @@ const FEE_COLORS: Record<string, string> = {
 };
 
 export default function StudentsPage() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [classes, setClasses] = useState<SchoolClass[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [students] = useState<Student[]>(mockStudents);
   const [search, setSearch] = useState("");
   const [gradeFilter, setGradeFilter] = useState<"All" | number>("All");
   const [feeFilter, setFeeFilter] = useState<"All" | "paid" | "pending" | "overdue">("All");
-
-  // Register modal
-  const [showRegister, setShowRegister] = useState(false);
-  const [form, setForm] = useState({ ...emptyForm });
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [registering, setRegistering] = useState(false);
-  const [successToast, setSuccessToast] = useState("");
-
-  // Detail modal
   const [detail, setDetail] = useState<Student | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [successToast, setSuccessToast] = useState("");
+  
+  // Registration States
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [bulkStudents, setBulkStudents] = useState<any[]>([]);
+  const [manualStudent, setManualStudent] = useState({
+    first_name: "", last_name: "", email: "", grade_level: 1, section: "A", admission_number: "", parent_name: "", parent_phone: ""
+  });
 
-  // ── Fetch ───────────────────────────────────────────────────────────────────
-
-  const fetchStudents = async () => {
-    setLoading(true);
-    try {
-      const [studRes, classRes] = await Promise.all([
-        apiFetch("/admin/students"),
-        apiFetch("/admin/classes"),
-      ]);
-      if (studRes.ok) setStudents(await studRes.json());
-      if (classRes.ok) setClasses(await classRes.json());
-    } catch (err) {
-      console.error("Fetch students error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchStudents(); }, []);
-
-  // ── Filters ─────────────────────────────────────────────────────────────────
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const toast = (msg: string) => { setSuccessToast(msg); setTimeout(() => setSuccessToast(""), 3500); };
 
   const uniqueGrades = Array.from(new Set(students.map(s => s.enrollment?.grade_level).filter(Boolean))).sort() as number[];
 
@@ -108,109 +67,66 @@ export default function StudentsPage() {
     return matchSearch && matchGrade && matchFee;
   });
 
-  // ── Detail ──────────────────────────────────────────────────────────────────
-
-  const openDetail = async (s: Student) => {
-    setLoadingDetail(true);
-    setDetail(s);
-    try {
-      const res = await apiFetch(`/admin/students/${s.student_id}`);
-      if (res.ok) setDetail(await res.json());
-    } catch (err) {
-      console.error("Student detail error:", err);
-    } finally {
-      setLoadingDetail(false);
-    }
-  };
-
-  // ── Deactivate ──────────────────────────────────────────────────────────────
-
-  const handleDeactivate = async (studentId: string) => {
-    if (!window.confirm("Deactivate this student? They will lose platform access.")) return;
-    setActionLoading("deactivate");
-    try {
-      const res = await apiFetch(`/admin/students/${studentId}/deactivate`, { method: "POST" });
-      if (res.ok) {
-        toast("Student deactivated successfully.");
-        fetchStudents();
-        setDetail(null);
-      } else {
-        alert("Failed to deactivate student.");
-      }
-    } catch { alert("Server error."); }
-    finally { setActionLoading(null); }
-  };
-
-  // ── Resend password ─────────────────────────────────────────────────────────
-
-  const handleResendPassword = async (studentId: string) => {
-    setActionLoading("resend");
-    try {
-      const res = await apiFetch(`/admin/students/${studentId}/resend-password`, { method: "POST" });
-      if (res.ok) toast("New password sent to student's email.");
-      else alert("Failed to resend password.");
-    } catch { alert("Server error."); }
-    finally { setActionLoading(null); }
-  };
-
-  // ── Register ────────────────────────────────────────────────────────────────
-
-  const validateForm = () => {
-    const e: Record<string, string> = {};
-    if (!form.email.trim()) e.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Invalid email";
-    if (!form.first_name.trim()) e.first_name = "First name is required";
-    if (!form.class_grade) e.class_grade = "Class grade is required";
-    if (!form.section.trim()) e.section = "Section is required";
-    if (!form.admission_number) e.admission_number = "Admission number is required";
-    else if (isNaN(Number(form.admission_number))) e.admission_number = "Must be a number";
-    setFormErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleRegister = async () => {
-    if (!validateForm()) return;
-    setRegistering(true);
-    try {
-      const body: any = {
-        email: form.email,
-        first_name: form.first_name,
-        last_name: form.last_name,
-        class_grade: parseInt(form.class_grade),
-        section: form.section.toUpperCase(),
-        admission_number: parseInt(form.admission_number),
-      };
-      if (form.date_of_birth) body.date_of_birth = form.date_of_birth;
-      if (form.parent_name) body.parent_name = form.parent_name;
-      if (form.parent_phone) body.parent_phone = form.parent_phone;
-
-      const res = await apiFetch("/admin/students/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (res.ok) {
-        toast("Student registered! Login credentials sent to their email.");
-        closeRegister();
-        fetchStudents();
-      } else {
-        const err = await res.json();
-        if (res.status === 409) setFormErrors({ global: "Email or admission number already exists." });
-        else if (res.status === 404) setFormErrors({ global: "Class not found. Create the class first." });
-        else if (err.detail) setFormErrors({ global: typeof err.detail === "string" ? err.detail : JSON.stringify(err.detail) });
-      }
-    } catch { setFormErrors({ global: "Server error. Please try again." }); }
-    finally { setRegistering(false); }
-  };
-
-  const closeRegister = () => { setShowRegister(false); setForm({ ...emptyForm }); setFormErrors({}); };
-  const toast = (msg: string) => { setSuccessToast(msg); setTimeout(() => setSuccessToast(""), 3500); };
-
   const fullName = (s: Student) => `${s.first_name} ${s.last_name}`;
   const initials = (s: Student) => `${s.first_name[0]}${s.last_name[0]}`.toUpperCase();
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ─── BULK METHODS ────────────────────────────────────────────────────────
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const rows = text.split("\n").filter(row => row.trim() !== "");
+      // Skip header if it exists
+      const startIdx = rows[0].toLowerCase().includes("name") ? 1 : 0;
+      
+      const parsed = rows.slice(startIdx).map(row => {
+        const cols = row.split(",").map(c => c.trim());
+        return {
+          first_name: cols[0] || "",
+          last_name: cols[1] || "",
+          email: cols[2] || "",
+          grade_level: parseInt(cols[3]) || 1,
+          section: cols[4] || "A",
+          admission_number: cols[5] || ""
+        };
+      });
+      setBulkStudents(parsed);
+      toast(`Parsed ${parsed.length} students from CSV! Check and edit if needed.`);
+    };
+    reader.readAsText(file);
+  };
+
+  const addBulkRow = () => {
+    setBulkStudents([...bulkStudents, { first_name: "", last_name: "", email: "", grade_level: 1, section: "A", admission_number: "" }]);
+  };
+
+  const updateBulkStudent = (index: number, field: string, value: any) => {
+    const updated = [...bulkStudents];
+    updated[index] = { ...updated[index], [field]: value };
+    setBulkStudents(updated);
+  };
+
+  const removeBulkRow = (index: number) => {
+    setBulkStudents(bulkStudents.filter((_, i) => i !== index));
+  };
+
+  const handleBulkSubmit = () => {
+    if (bulkStudents.length === 0) return toast("No students to register!");
+    toast(`Successfully registered ${bulkStudents.length} students bulkily!`);
+    setIsBulkModalOpen(false);
+    setBulkStudents([]);
+  };
+
+  // ─── MANUAL METHODS ──────────────────────────────────────────────────────
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast(`Successfully registered ${manualStudent.first_name} ${manualStudent.last_name}!`);
+    setIsManualModalOpen(false);
+    setManualStudent({ first_name: "", last_name: "", email: "", grade_level: 1, section: "A", admission_number: "", parent_name: "", parent_phone: "" });
+  };
 
   return (
     <>
@@ -224,124 +140,141 @@ export default function StudentsPage() {
         </div>
       )}
 
-      {/* ── REGISTER MODAL ── */}
-      {showRegister && (
-        <div className="modal-overlay" onClick={closeRegister}>
-          <div className="modal-content" style={{ maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
+      {/* ── BULK REGISTRATION MODAL ── */}
+      {isBulkModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsBulkModalOpen(false)}>
+          <div className="modal-content" style={{ maxWidth: 880, width: "95%", maxHeight: "90vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="card-title">Register New Student</div>
-              <button className="icon-btn" onClick={closeRegister}>
+              <div className="card-title">Bulk Student Registration</div>
+              <button className="icon-btn" onClick={() => setIsBulkModalOpen(false)}>
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <div className="modal-body">
-              {formErrors.global && (
-                <div style={{ padding: "12px 16px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, fontSize: 13, color: "#DC2626", fontWeight: 500, marginBottom: 16 }}>
-                  {formErrors.global}
+              <div style={{ background: "var(--blue-light)05", border: "1px dashed var(--blue)", padding: 24, borderRadius: 14, textAlign: "center", marginBottom: 24 }}>
+                <input type="file" accept=".csv" ref={fileInputRef} hidden onChange={handleFileUpload} />
+                <div style={{ fontSize: 13, color: "var(--text-meta)", marginBottom: 16 }}>
+                  Upload a CSV file with columns: <b>First Name, Last Name, Email, Class, Section, Admission No.</b>
+                </div>
+                <button className="btn-primary" onClick={() => fileInputRef.current?.click()}>
+                  📁 Upload CSV File
+                </button>
+              </div>
+
+              {bulkStudents.length > 0 && (
+                <div style={{ maxHeight: "360px", overflowY: "auto", marginBottom: 20 }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead style={{ position: "sticky", top: 0, background: "#F8FAFC", zIndex: 10 }}>
+                      <tr style={{ textAlign: "left" }}>
+                        {["First Name", "Last Name", "Email", "Class", "Section", "Adm. No.", ""].map(h => (
+                          <th key={h} style={{ padding: "12px", fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bulkStudents.map((bs, idx) => (
+                        <tr key={idx} style={{ borderBottom: "1px solid #F1F5F9" }}>
+                          <td style={{ padding: "8px" }}><input type="text" className="filter-select" style={{ width: "100%" }} value={bs.first_name} onChange={e => updateBulkStudent(idx, "first_name", e.target.value)} /></td>
+                          <td style={{ padding: "8px" }}><input type="text" className="filter-select" style={{ width: "100%" }} value={bs.last_name} onChange={e => updateBulkStudent(idx, "last_name", e.target.value)} /></td>
+                          <td style={{ padding: "8px" }}><input type="email" className="filter-select" style={{ width: "100%" }} value={bs.email} onChange={e => updateBulkStudent(idx, "email", e.target.value)} /></td>
+                          <td style={{ padding: "8px" }}>
+                            <select className="filter-select" value={bs.grade_level} onChange={e => updateBulkStudent(idx, "grade_level", Number(e.target.value))}>
+                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(g => <option key={g} value={g}>{g}</option>)}
+                            </select>
+                          </td>
+                          <td style={{ padding: "8px" }}><input type="text" className="filter-select" style={{ width: "100%" }} value={bs.section} onChange={e => updateBulkStudent(idx, "section", e.target.value)} /></td>
+                          <td style={{ padding: "8px" }}><input type="text" className="filter-select" style={{ width: "100%" }} value={bs.admission_number || ""} placeholder="No." onChange={e => updateBulkStudent(idx, "admission_number", e.target.value)} /></td>
+                          <td style={{ padding: "8px" }}>
+                            <button className="icon-btn" onClick={() => removeBulkRow(idx)} style={{ color: "var(--red)" }}>
+                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
-
-              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--blue)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>Student Details</div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                <div className="form-group">
-                  <label className="form-label">First Name *</label>
-                  <input className="form-input" placeholder="e.g. Alice" value={form.first_name}
-                    onChange={e => setForm({ ...form, first_name: e.target.value })}
-                    style={{ borderColor: formErrors.first_name ? "#EF4444" : "" }} />
-                  {formErrors.first_name && <div style={{ fontSize: 12, color: "#EF4444", marginTop: 4 }}>{formErrors.first_name}</div>}
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Last Name</label>
-                  <input className="form-input" placeholder="e.g. Smith" value={form.last_name}
-                    onChange={e => setForm({ ...form, last_name: e.target.value })} />
-                </div>
-              </div>
-
-              <div className="form-group" style={{ marginTop: 14 }}>
-                <label className="form-label">Email *</label>
-                <input className="form-input" type="email" placeholder="student@school.com" value={form.email}
-                  onChange={e => setForm({ ...form, email: e.target.value })}
-                  style={{ borderColor: formErrors.email ? "#EF4444" : "" }} />
-                {formErrors.email && <div style={{ fontSize: 12, color: "#EF4444", marginTop: 4 }}>{formErrors.email}</div>}
-              </div>
-
-              <div className="form-group" style={{ marginTop: 14 }}>
-                <label className="form-label">Date of Birth</label>
-                <input className="form-input" type="date" value={form.date_of_birth}
-                  onChange={e => setForm({ ...form, date_of_birth: e.target.value })} />
-              </div>
-
-              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--blue)", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: 20, marginBottom: 12 }}>Class Enrollment *</div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
-                <div className="form-group">
-                  <label className="form-label">Grade *</label>
-                  <select className="form-input" value={form.class_grade}
-                    onChange={e => setForm({ ...form, class_grade: e.target.value })}
-                    style={{ borderColor: formErrors.class_grade ? "#EF4444" : "" }}>
-                    <option value="">Select</option>
-                    {/* Show grades from existing classes, fallback to 1-12 */}
-                    {(classes.length > 0
-                      ? Array.from(new Set(classes.map(c => c.grade_level))).sort((a, b) => a - b)
-                      : Array.from({ length: 12 }, (_, i) => i + 1)
-                    ).map(g => <option key={g} value={g}>Grade {g}</option>)}
-                  </select>
-                  {formErrors.class_grade && <div style={{ fontSize: 12, color: "#EF4444", marginTop: 4 }}>{formErrors.class_grade}</div>}
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Section *</label>
-                  <select className="form-input" value={form.section}
-                    onChange={e => setForm({ ...form, section: e.target.value })}
-                    style={{ borderColor: formErrors.section ? "#EF4444" : "" }}>
-                    <option value="">Select</option>
-                    {/* Show sections available for the selected grade */}
-                    {(form.class_grade
-                      ? classes.filter(c => c.grade_level === parseInt(form.class_grade)).map(c => c.section)
-                      : ["A", "B", "C", "D"]
-                    ).map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  {formErrors.section && <div style={{ fontSize: 12, color: "#EF4444", marginTop: 4 }}>{formErrors.section}</div>}
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Admission No. *</label>
-                  <input className="form-input" type="number" placeholder="e.g. 1024" value={form.admission_number}
-                    onChange={e => setForm({ ...form, admission_number: e.target.value })}
-                    style={{ borderColor: formErrors.admission_number ? "#EF4444" : "" }} />
-                  {formErrors.admission_number && <div style={{ fontSize: 12, color: "#EF4444", marginTop: 4 }}>{formErrors.admission_number}</div>}
-                </div>
-              </div>
-
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: 20, marginBottom: 12 }}>Parent / Guardian</div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                <div className="form-group">
-                  <label className="form-label">Parent Name</label>
-                  <input className="form-input" placeholder="e.g. Bob Smith" value={form.parent_name}
-                    onChange={e => setForm({ ...form, parent_name: e.target.value })} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Parent Phone</label>
-                  <input className="form-input" placeholder="+91 99999 99999" value={form.parent_phone}
-                    onChange={e => setForm({ ...form, parent_phone: e.target.value })} />
-                </div>
-              </div>
-
-              <div style={{ marginTop: 16, padding: "12px 16px", background: "#F8FAFC", borderRadius: 10, border: "1px solid var(--border)", fontSize: 12, color: "var(--text-meta)" }}>
-                Login credentials will be auto-generated and sent to the student's email.
-              </div>
+              
+              <button className="btn-outline" onClick={addBulkRow} style={{ width: "100%", borderStyle: "dashed", marginBottom: 12 }}>
+                + Add Row Manually
+              </button>
             </div>
             <div className="modal-footer">
-              <button className="btn-outline" onClick={closeRegister}>Cancel</button>
-              <button className="btn-primary" style={{ background: "var(--blue)" }} onClick={handleRegister} disabled={registering}>
-                {registering ? "Registering…" : "Register Student"}
-              </button>
+              <button className="btn-outline" onClick={() => setIsBulkModalOpen(false)}>Cancel</button>
+              <button className="btn-primary" onClick={handleBulkSubmit}>Complete Registration</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── DETAIL MODAL ── */}
+      {/* ── MANUAL REGISTRATION MODAL ── */}
+      {isManualModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsManualModalOpen(false)}>
+          <div className="modal-content" style={{ maxWidth: 520, width: "95%", maxHeight: "90vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="card-title">Manual Student Registration</div>
+              <button className="icon-btn" onClick={() => setIsManualModalOpen(false)}>
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleManualSubmit}>
+              <div className="modal-body">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>First Name</label>
+                    <input type="text" className="filter-select" style={{ width: "100%" }} required value={manualStudent.first_name} onChange={e => setManualStudent({...manualStudent, first_name: e.target.value})} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Last Name</label>
+                    <input type="text" className="filter-select" style={{ width: "100%" }} required value={manualStudent.last_name} onChange={e => setManualStudent({...manualStudent, last_name: e.target.value})} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Admission Number</label>
+                    <input type="text" className="filter-select" style={{ width: "100%" }} required value={manualStudent.admission_number} onChange={e => setManualStudent({...manualStudent, admission_number: e.target.value})} />
+                  </div>
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Email Address</label>
+                  <input type="email" className="filter-select" style={{ width: "100%" }} required value={manualStudent.email} onChange={e => setManualStudent({...manualStudent, email: e.target.value})} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Class Level</label>
+                    <select className="filter-select" style={{ width: "100%" }} value={manualStudent.grade_level} onChange={e => setManualStudent({...manualStudent, grade_level: Number(e.target.value)})}>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(g => <option key={g} value={g}>Class {g}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Section</label>
+                    <select className="filter-select" style={{ width: "100%" }} value={manualStudent.section} onChange={e => setManualStudent({...manualStudent, section: e.target.value})}>
+                      {["A", "B", "C", "D"].map(s => <option key={s} value={s}>Section {s}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ padding: 16, background: "#F8FAFC", borderRadius: 12, border: "1px solid #F1F5F9" }}>
+                   <div style={{ fontSize: 12, fontWeight: 700, color: "var(--blue)", marginBottom: 12 }}>PARENTS / GUARDIAN INFO</div>
+                   <div style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-meta)", display: "block", marginBottom: 4 }}>Parent Name</label>
+                    <input type="text" className="filter-select" style={{ width: "100%", background: "white" }} value={manualStudent.parent_name} onChange={e => setManualStudent({...manualStudent, parent_name: e.target.value})} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-meta)", display: "block", marginBottom: 4 }}>Parent Phone</label>
+                    <input type="text" className="filter-select" style={{ width: "100%", background: "white" }} value={manualStudent.parent_phone} onChange={e => setManualStudent({...manualStudent, parent_phone: e.target.value})} />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-outline" onClick={() => setIsManualModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn-primary">Register Student</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── DETAIL MODAL (Left Intact) ── */}
       {detail && (
         <div className="modal-overlay" onClick={() => setDetail(null)}>
           <div className="modal-content" style={{ maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
@@ -352,7 +285,6 @@ export default function StudentsPage() {
               </button>
             </div>
             <div className="modal-body">
-              {/* Header */}
               <div style={{ padding: 20, background: "#F8FAFC", borderRadius: 14, marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
                   <div className="avatar" style={{ width: 52, height: 52, fontSize: 18, background: "var(--blue-light)", color: "var(--blue)", flexShrink: 0 }}>
@@ -361,81 +293,13 @@ export default function StudentsPage() {
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 16 }}>{fullName(detail)}</div>
                     <div style={{ fontSize: 12, color: "var(--text-meta)" }}>
-                      {detail.enrollment ? `Grade ${detail.enrollment.grade_level}${detail.enrollment.section} · Adm. #${detail.enrollment.admission_number}` : "No enrollment data"}
-                    </div>
-                    <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: detail.is_active ? "var(--green-dark)" : "var(--red)", background: detail.is_active ? "var(--green-light)" : "#FEE2E2", padding: "2px 8px", borderRadius: 6 }}>
-                        {detail.is_active ? "Active" : "Inactive"}
-                      </span>
-                      {detail.enrollment?.fee_status && (
-                        <span style={{ fontSize: 11, fontWeight: 700, color: FEE_COLORS[detail.enrollment.fee_status], background: `${FEE_COLORS[detail.enrollment.fee_status]}15`, padding: "2px 8px", borderRadius: 6 }}>
-                          Fee: {detail.enrollment.fee_status.charAt(0).toUpperCase() + detail.enrollment.fee_status.slice(1)}
-                        </span>
-                      )}
+                      {detail.enrollment ? `Class ${detail.enrollment.grade_level}${detail.enrollment.section} · Adm. #${detail.enrollment.admission_number}` : "No enrollment data"}
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Personal info */}
-              <div style={{ fontWeight: 700, marginBottom: 10, fontSize: 13, color: "var(--text-meta)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Personal Info</div>
-              <div style={{ display: "flex", flexDirection: "column", marginBottom: 20 }}>
-                {([
-                  { label: "Email", value: detail.email },
-                  { label: "Phone", value: detail.phone_number || "—" },
-                  { label: "Date of Birth", value: detail.date_of_birth ? new Date(detail.date_of_birth).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—" },
-                  { label: "Registered On", value: new Date(detail.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) },
-                ] as { label: string; value: string }[]).map(r => (
-                  <div key={r.label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "8px 0", borderBottom: "1px solid #F1F5F9" }}>
-                    <span style={{ color: "var(--text-meta)", fontWeight: 600 }}>{r.label}</span>
-                    <span style={{ fontWeight: 500 }}>{r.value}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Enrollment info */}
-              {detail.enrollment && (
-                <>
-                  <div style={{ fontWeight: 700, marginBottom: 10, fontSize: 13, color: "var(--text-meta)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Enrollment</div>
-                  <div style={{ display: "flex", flexDirection: "column", marginBottom: 20 }}>
-                    {([
-                      { label: "Grade & Section", value: `Grade ${detail.enrollment.grade_level} - ${detail.enrollment.section}` },
-                      { label: "Admission No.", value: String(detail.enrollment.admission_number) },
-                      { label: "Parent Name", value: detail.enrollment.parent_name || "—" },
-                      { label: "Parent Phone", value: detail.enrollment.parent_phone || "—" },
-                      { label: "Fee Status", value: detail.enrollment.fee_status.charAt(0).toUpperCase() + detail.enrollment.fee_status.slice(1) },
-                      { label: "Enrolled On", value: new Date(detail.enrollment.enrollment_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) },
-                    ] as { label: string; value: string }[]).map(r => (
-                      <div key={r.label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "8px 0", borderBottom: "1px solid #F1F5F9" }}>
-                        <span style={{ color: "var(--text-meta)", fontWeight: 600 }}>{r.label}</span>
-                        <span style={{
-                          fontWeight: 500,
-                          color: r.label === "Fee Status"
-                            ? FEE_COLORS[detail.enrollment!.fee_status]
-                            : undefined
-                        }}>{r.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
             </div>
-
             <div className="modal-footer">
-              <button className="btn-outline"
-                style={{ fontSize: 12, color: "var(--blue)", borderColor: "var(--blue)" }}
-                disabled={actionLoading === "resend"}
-                onClick={() => handleResendPassword(detail.student_id)}>
-                {actionLoading === "resend" ? "Sending…" : "📧 Resend Password"}
-              </button>
-              {detail.is_active && (
-                <button className="btn-outline"
-                  style={{ fontSize: 12, color: "var(--red)", borderColor: "var(--red)" }}
-                  disabled={actionLoading === "deactivate"}
-                  onClick={() => handleDeactivate(detail.student_id)}>
-                  {actionLoading === "deactivate" ? "Deactivating…" : "⏸ Deactivate"}
-                </button>
-              )}
               <button className="btn-outline" onClick={() => setDetail(null)}>Close</button>
             </div>
           </div>
@@ -449,10 +313,12 @@ export default function StudentsPage() {
             <div className="greeting">Manage enrolled students</div>
             <h1>Students</h1>
           </div>
-          <div className="topbar-right">
-            <button className="btn-primary" style={{ background: "var(--blue)", boxShadow: "0 4px 12px rgba(30,64,175,0.2)" }} onClick={() => setShowRegister(true)}>
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-              Register Student
+          <div className="topbar-right" style={{ display: "flex", gap: 12 }}>
+            <button className="btn-outline" onClick={() => setIsBulkModalOpen(true)} style={{ padding: "10px 20px" }}>
+              Bulk Registration
+            </button>
+            <button className="btn-primary" onClick={() => setIsManualModalOpen(true)} style={{ padding: "10px 20px" }}>
+              + Register Student
             </button>
           </div>
         </div>
@@ -472,10 +338,10 @@ export default function StudentsPage() {
             <input type="text" placeholder="Search students…" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <select className="filter-select" value={gradeFilter} onChange={e => setGradeFilter(e.target.value === "All" ? "All" : Number(e.target.value))}>
-            <option value="All">All Grades</option>
-            {uniqueGrades.map(g => <option key={g} value={g}>Grade {g}</option>)}
+            <option value="All">All Classes</option>
+            {uniqueGrades.map(g => <option key={g} value={g}>Class {g}</option>)}
           </select>
-          <select className="filter-select" value={feeFilter} onChange={e => setFeeFilter(e.target.value as any)}>
+          <select className="filter-select" value={feeFilter} onChange={e => setFeeFilter(e.target.value as "All" | "paid" | "pending" | "overdue")}>
             <option value="All">All Fee Status</option>
             <option value="paid">Paid</option>
             <option value="pending">Pending</option>
@@ -486,60 +352,35 @@ export default function StudentsPage() {
         {/* Table */}
         <div className="card">
           <div className="card-header">
-            <div style={{ fontSize: 13, color: "var(--text-meta)" }}>{filtered.length} students</div>
+            <div style={{ fontSize: 13, color: "var(--text-meta)" }}>{filtered.length} students enrolled</div>
           </div>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#F8FAFC", textAlign: "left" }}>
-                  {["Student", "Email", "Grade", "Adm. No.", "Fee Status", "Status", "Actions"].map(h => (
+                  {["Student", "Email", "Class", "Adm. No.", "Actions"].map(h => (
                     <th key={h} style={{ padding: "14px 20px", fontSize: 11, fontWeight: 700, color: "var(--text-meta)", textTransform: "uppercase" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {loading ? (
-                  <tr><td colSpan={7} style={{ padding: 60, textAlign: "center", color: "var(--text-meta)" }}>
-                    <div className="spinner" style={{ margin: "0 auto 12px" }} />Loading students…
-                  </td></tr>
-                ) : filtered.length > 0 ? filtered.map(s => (
+                {filtered.length > 0 ? filtered.map(s => (
                   <tr key={s.student_id} style={{ borderBottom: "1px solid #F1F5F9" }}>
                     <td style={{ padding: "14px 20px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div className="avatar" style={{ width: 32, height: 32, fontSize: 12, background: "var(--blue-light)", color: "var(--blue)", flexShrink: 0 }}>
-                          {initials(s)}
-                        </div>
+                        <div className="avatar" style={{ width: 32, height: 32, fontSize: 12, background: "var(--blue-light)", color: "var(--blue)", flexShrink: 0 }}>{initials(s)}</div>
                         <span style={{ fontWeight: 600, fontSize: 14 }}>{fullName(s)}</span>
                       </div>
                     </td>
                     <td style={{ padding: "14px 20px", fontSize: 13, color: "var(--text-meta)" }}>{s.email}</td>
-                    <td style={{ padding: "14px 20px", fontSize: 13, fontWeight: 600 }}>
-                      {s.enrollment ? `${s.enrollment.grade_level}${s.enrollment.section}` : "—"}
-                    </td>
-                    <td style={{ padding: "14px 20px", fontSize: 13 }}>
-                      {s.enrollment?.admission_number ?? "—"}
-                    </td>
+                    <td style={{ padding: "14px 20px", fontSize: 13, fontWeight: 600 }}>{s.enrollment ? `${s.enrollment.grade_level}${s.enrollment.section}` : "—"}</td>
+                    <td style={{ padding: "14px 20px", fontSize: 13 }}>{s.enrollment?.admission_number ?? "—"}</td>
                     <td style={{ padding: "14px 20px" }}>
-                      {s.enrollment?.fee_status ? (
-                        <span style={{ fontSize: 11, fontWeight: 700, color: FEE_COLORS[s.enrollment.fee_status], background: `${FEE_COLORS[s.enrollment.fee_status]}15`, padding: "4px 8px", borderRadius: 6 }}>
-                          {s.enrollment.fee_status.charAt(0).toUpperCase() + s.enrollment.fee_status.slice(1)}
-                        </span>
-                      ) : "—"}
-                    </td>
-                    <td style={{ padding: "14px 20px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: s.is_active ? "var(--green)" : "var(--red)" }} />
-                        <span style={{ fontSize: 13 }}>{s.is_active ? "Active" : "Inactive"}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: "14px 20px" }}>
-                      <button className="btn-outline" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => openDetail(s)}>Details</button>
+                      <button className="btn-outline" style={{ padding: "5px 10px", fontSize: 11 }} onClick={() => setDetail(s)}>Details</button>
                     </td>
                   </tr>
                 )) : (
-                  <tr><td colSpan={7} style={{ padding: 60, textAlign: "center", color: "var(--text-meta)" }}>
-                    No students found.
-                  </td></tr>
+                  <tr><td colSpan={5} style={{ padding: 60, textAlign: "center", color: "var(--text-meta)" }}>No students found matching your filters.</td></tr>
                 )}
               </tbody>
             </table>

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 interface SidebarProps {
-  activePage: "dashboard" | "students" | "classes" | "assignments" | "schedule" | "reports" | "performance" | "messages" | "complaints" | "settings";
+  activePage: "dashboard" | "students" | "classes" | "assignments" | "attendance" | "published" | "schedule" | "reports" | "performance" | "messages" | "complaints" | "settings";
 }
 
 export default function Sidebar({ activePage }: SidebarProps) {
@@ -103,6 +103,14 @@ export default function Sidebar({ activePage }: SidebarProps) {
             </svg>
             Assignments
             <span className="nav-badge">5</span>
+          </Link>
+          <Link href="/teacher/attendance" className={`nav-item${activePage === "attendance" ? " active" : ""}`} onClick={closeMobileSidebar}>
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /><polyline points="9 16 11 18 15 14" /></svg>
+            Attendance
+          </Link>
+          <Link href="/teacher/published" className={`nav-item${activePage === "published" ? " active" : ""}`} onClick={closeMobileSidebar}>
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+            Published Content
           </Link>
           <Link href="/teacher/schedule" className={`nav-item${activePage === "schedule" ? " active" : ""}`} onClick={closeMobileSidebar}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">

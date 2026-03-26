@@ -143,7 +143,7 @@ export default function AdminSchedulePage() {
       day: s.day,
       start_time: s.start_time,
       end_time: s.end_time,
-      room: s.room,
+      room: s.room || "",
     });
     setEditError(null);
   };
@@ -307,17 +307,6 @@ export default function AdminSchedulePage() {
                     onChange={(e) =>
                       setForm({ ...form, end_time: e.target.value })
                     }
-                  />
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Room (optional)</label>
-                  <input
-                    className="form-input"
-                    value={form.room}
-                    onChange={(e) =>
-                      setForm({ ...form, room: e.target.value })
-                    }
-                    placeholder="e.g. 204"
                   />
                 </div>
               </div>
@@ -622,7 +611,7 @@ export default function AdminSchedulePage() {
                         ? {
                             ...editForm,
                             class_id: e.target.value,
-                            section: cl.section,
+                            section: cl.section || "",
                           }
                         : { ...editForm, class_id: e.target.value }
                     );
@@ -641,7 +630,7 @@ export default function AdminSchedulePage() {
                   className="form-input"
                   value={editForm.subject}
                   onChange={(e) =>
-                    setEditForm({ ...editForm, subject: e.target.value })
+                    setEditForm({ ...editForm, subject: e.target.value || "" })
                   }
                 />
               </div>
@@ -651,7 +640,7 @@ export default function AdminSchedulePage() {
                   className="form-input filter-select"
                   value={editForm.teacher_id}
                   onChange={(e) =>
-                    setEditForm({ ...editForm, teacher_id: e.target.value })
+                    setEditForm({ ...editForm, teacher_id: e.target.value || "" })
                   }
                 >
                   {teachers.map((t) => (
@@ -667,7 +656,7 @@ export default function AdminSchedulePage() {
                   className="form-input filter-select"
                   value={editForm.day}
                   onChange={(e) =>
-                    setEditForm({ ...editForm, day: e.target.value })
+                    setEditForm({ ...editForm, day: e.target.value || "" })
                   }
                 >
                   {SCHEDULE_DAYS.map((d) => (
@@ -691,7 +680,7 @@ export default function AdminSchedulePage() {
                     type="time"
                     value={editForm.start_time}
                     onChange={(e) =>
-                      setEditForm({ ...editForm, start_time: e.target.value })
+                      setEditForm({ ...editForm, start_time: e.target.value || "" })
                     }
                   />
                 </div>
@@ -702,20 +691,10 @@ export default function AdminSchedulePage() {
                     type="time"
                     value={editForm.end_time}
                     onChange={(e) =>
-                      setEditForm({ ...editForm, end_time: e.target.value })
+                      setEditForm({ ...editForm, end_time: e.target.value || "" })
                     }
                   />
                 </div>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Room</label>
-                <input
-                  className="form-input"
-                  value={editForm.room}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, room: e.target.value })
-                  }
-                />
               </div>
               {editError && (
                 <p style={{ color: "var(--red)", fontSize: 13, fontWeight: 600 }}>
