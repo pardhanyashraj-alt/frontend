@@ -237,7 +237,7 @@ export default function ClassDetails({ params }: { params: Promise<{ id: string 
           errorData = { detail: text || 'Unknown error' };
         }
         console.error('Quiz submission failed:', response.status, errorData);
-        setQuizError(errorData.detail || errorData.message || errorData.error || `Failed to submit quiz (HTTP ${response.status})`);
+        setQuizError(`Failed to submit quiz (HTTP ${response.status})`);
       }
     } catch (err) {
       console.error('Error submitting quiz:', err);
