@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const accessToken = localStorage.getItem('access_token');
       if (accessToken) {
         try {
-          const response = await fetch('http://127.0.0.1:8000/auth/me', {
+          const response = await fetch('https://padhai-backend-qbw5.onrender.com/auth/me', {
             headers: {
               'Authorization': `Bearer ${accessToken}`,
             },
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/auth/login', {
+      const response = await fetch('https://padhai-backend-qbw5.onrender.com/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!isLoading ? children : null}
     </AuthContext.Provider>
   );
 }
@@ -135,4 +135,20 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+}
+
+export function withAuth<P extends object>(Component: React.ComponentType<P>) {
+  return function ProtectedComponent(props: P) {
+    const { isLoading, isAuthenticated, user } = useAuth();
+
+    if (isLoading) {
+      return <div>Loading...</div>;
+    }
+
+    if (!isAuthenticated) {
+      return null;
+    }
+
+    return <Component {...props} />;
+  };
 }

@@ -37,8 +37,6 @@ export default function SuperAdminRootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthProvider>
-      <ProtectedLayout>{children}</ProtectedLayout>
-    </AuthProvider>
+    <ProtectedLayout>{children}</ProtectedLayout>
   );
 }

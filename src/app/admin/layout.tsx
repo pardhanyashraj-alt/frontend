@@ -1,11 +1,11 @@
 "use client";
 
-import { AdminProvider } from "../../context/AdminContext";
+import { AuthProvider } from "../context/AuthContext";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AdminProvider>
+    <AuthProvider>
       {children}
-    </AdminProvider>
+    </AuthProvider>
   );
 }
